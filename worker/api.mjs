@@ -11,7 +11,7 @@ export async function handleAPI(request, env) {
     try { body = await request.json(); } catch { return json({ error: 'Invalid request.' }, 400); }
     if (!games.includes(body?.game)) return json({ error: 'Choose a supported game.' }, 400);
     const id = crypto.randomUUID().replaceAll('-', '');
-    const state = { game: body.game, paused: false, move: 0, peek: 0, revision: 0, remoteSeen: 0, hostSeen: Date.now(), expires: Date.now() + lifetime, control: { x: .5, y: .5, active: false, hidden: false, twitch: 0 }, processed: [] };
+    const state = { game: body.game, paused: false, caught: false, move: 0, peek: 0, revision: 0, remoteSeen: 0, hostSeen: Date.now(), expires: Date.now() + lifetime, control: { x: .5, y: .5, active: false, hidden: false, twitch: 0 }, processed: [] };
     await env.BUCKET.put('rooms/' + id, JSON.stringify(state));
     return json({ id, ...publicState(state) }, 201);
   }
@@ -33,7 +33,7 @@ export async function handleAPI(request, env) {
   if (raw.length > 1024) return json({ error: 'Request too large.' }, 413);
   let body;
   try { body = JSON.parse(raw); } catch { return json({ error: 'Invalid request.' }, 400); }
-  const allowed = ['move', 'peek', 'pause', 'resume', 'game', 'remote-heartbeat', 'host-heartbeat', 'control'];
+  const allowed = ['move', 'peek', 'pause', 'resume', 'game', 'remote-heartbeat', 'host-heartbeat', 'control', 'catch', 'release'];
   if (!allowed.includes(body?.action) || typeof body.id !== 'string' || body.id.length > 64 || !body.id) return json({ error: 'Unknown command.' }, 400);
   if (state.processed.includes(body.id)) return json(publicState(state));
   if (body.action === 'game' && !games.includes(body?.game)) return json({ error: 'Choose a supported game.' }, 400);
@@ -44,6 +44,9 @@ export async function handleAPI(request, env) {
     state.paused = false;
   }
   if (body.action === 'move' || body.action === 'peek') { state[body.action]++; state.paused = false; if(body.action === 'move' && state.control) { state.control.active = false; state.control.hidden = false; } }
+  if(body.action === 'catch'){state.caught=true;state.paused=false;}
+  if(body.action === 'release'){state.caught=false;state.move++;state.paused=false;if(state.control){state.control.active=false;state.control.hidden=false;}}
+  if(body.action === 'move' || body.action === 'peek' || body.action === 'game' || body.action === 'control')state.caught=false;
   if (body.action === 'pause') state.paused = true;
   if (body.action === 'resume') state.paused = false;
   if (body.action === 'game') { state.game = body.game; state.paused = false; state.control = { x: .5, y: .5, active: false, hidden: false, twitch: 0 }; }

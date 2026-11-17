@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ToyControl } from '../games/ToyWorlds';
 import type { World } from '../games/EverydayWorlds';
 
-export type Room = { game: World; paused: boolean; move: number; peek: number; revision: number; expires: number; remoteSeen: number; hostSeen: number; control?: ToyControl };
-export type RemoteAction = 'move' | 'peek' | 'pause' | 'resume' | 'game' | 'remote-heartbeat' | 'host-heartbeat' | 'control';
+export type Room = { game: World; paused: boolean; caught?: boolean; move: number; peek: number; revision: number; expires: number; remoteSeen: number; hostSeen: number; control?: ToyControl };
+export type RemoteAction = 'move' | 'peek' | 'pause' | 'resume' | 'game' | 'remote-heartbeat' | 'host-heartbeat' | 'control' | 'catch' | 'release';
 async function api(path: string, options?: RequestInit) {
   const response = await fetch('/api/rooms' + path, { ...options, headers: { 'Content-Type': 'application/json', ...options?.headers }, cache: 'no-store' });
   let body;
@@ -52,7 +52,7 @@ export function useRemote(id: string | null, role: 'host' | 'remote') {
     return () => { cancelled = true; clearTimeout(timer); };
   }, [id, accept]);
   const send = useCallback((action: RemoteAction, game?: World, control?: ToyControl) => {
-    if(action === 'pause' || action === 'game' || action === 'move') {
+    if(action === 'pause' || action === 'game' || action === 'move' || action === 'catch' || action === 'release') {
       controlPending.current=null;
       if(controlTimer.current)clearTimeout(controlTimer.current);
       controlTimer.current=null;
@@ -103,3 +103,4 @@ export function useRemote(id: string | null, role: 'host' | 'remote') {
   return { room, error, pending, ended, send, sendControl };
 
 }
+

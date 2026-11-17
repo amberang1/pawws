@@ -5,7 +5,7 @@ import { underTheDoor } from './UnderTheDoor';
 import { stringAndSeek, hidingMouse, type ToyControl } from './ToyWorlds';
 
 export type World = 'rain' | 'bag' | 'receipt' | 'ribbon' | 'mouse' | 'door' | 'koi' | 'bug';
-export type Tease = { move: number; peek: number; paused: boolean; control?: ToyControl };
+export type Tease = { move: number; peek: number; paused: boolean; caught?: boolean; control?: ToyControl };
 export const quiet: Tease = { move: 0, peek: 0, paused: false };
 type Point = { x: number; y: number };
 type Scene = {
@@ -202,7 +202,7 @@ export function EverydayWorld({ world, tease = quiet, preview = false, onAction 
     function tick(now: number) {
       frame = requestAnimationFrame(tick);
       if(preview && now-lastRender<45)return;
-      const dt = inputs.current.tease.paused || document.hidden ? 0 : Math.min((now-previous)/1000,.05);
+      const dt = inputs.current.tease.paused || inputs.current.tease.caught || document.hidden ? 0 : Math.min((now-previous)/1000,.05);
       previous=now;lastRender=now;
       const current = inputs.current.tease;
       for(const kind of ['move','peek'] as const) if(current[kind]!==seen[kind]) {scene.command(kind);seen[kind]=current[kind];}
@@ -211,8 +211,8 @@ export function EverydayWorld({ world, tease = quiet, preview = false, onAction 
     }
     frame=requestAnimationFrame(tick);
     const point = (e: PointerEvent) => {const box=canvas.getBoundingClientRect();return{x:e.clientX-box.left,y:e.clientY-box.top};};
-    function down(e:PointerEvent){if(preview||inputs.current.tease.paused)return;e.preventDefault();canvas.setPointerCapture(e.pointerId);const p=point(e);points.set(e.pointerId,p);inputs.current.onAction?.('tap');if(scene.down(e.pointerId,p))inputs.current.onAction?.('catch');}
-    function move(e:PointerEvent){if(!points.has(e.pointerId))return;const p=point(e);points.set(e.pointerId,p);if(!inputs.current.tease.paused)scene.drag(e.pointerId,p);}
+    function down(e:PointerEvent){if(preview||(inputs.current.tease.paused||inputs.current.tease.caught))return;e.preventDefault();canvas.setPointerCapture(e.pointerId);const p=point(e);points.set(e.pointerId,p);inputs.current.onAction?.('tap');if(scene.down(e.pointerId,p))inputs.current.onAction?.('catch');}
+    function move(e:PointerEvent){if(!points.has(e.pointerId))return;const p=point(e);points.set(e.pointerId,p);if(!inputs.current.tease.paused&&!inputs.current.tease.caught)scene.drag(e.pointerId,p);}
     function up(e:PointerEvent){if(!points.has(e.pointerId))return;scene.up(e.pointerId,points.get(e.pointerId)!);points.delete(e.pointerId);}
     function blur(){for(const [id,p] of points)scene.up(id,p);points.clear();}
     canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);canvas.addEventListener('lostpointercapture',up);window.addEventListener('blur',blur);

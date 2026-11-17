@@ -1,3 +1,4 @@
+import { QRCodeSVG } from 'qrcode.react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Check, Copy, Maximize, MoreHorizontal, Pause, Play, Radio, Share2, X } from 'lucide-react';
 import { MainMenu } from './components/MainMenu';
@@ -140,9 +141,9 @@ export default function App() {
       {world && <>
         <div className="inline-controls"><button onClick={()=>localCommand('move')}>{world.move}</button><button onClick={()=>localCommand('peek')}>{world.peek}</button><button onClick={()=>localCommand(tease.paused?'resume':'pause')}>{tease.paused?<Play size={16}/>:<Pause size={16}/>} {tease.paused?'Resume':'Pause'}</button></div>
         <div className="remote-setup"><Radio size={21}/><h3>Be the mystery.</h3><p>Leave this screen with your cat. Open the remote on your phone to move, pause and peek.</p>
-        {!roomId ? <button className="primary-button" disabled={busy} onClick={()=>connect(world.id)}>{busy?'Making your remote…':'Connect a phone'} <ArrowLeft size={16} className="flip"/></button> : <>
+        {!roomId ? <button className="primary-button" disabled={busy} onClick={()=>connect(world.id)}>{busy?'Making your remote…':'Pair your phone'} <ArrowLeft size={16} className="flip"/></button> : <>
           <div className={'connection '+(room && Date.now()-room.remoteSeen<26000?'online':'')}><span className="little-dot"/>{room && Date.now()-room.remoteSeen<26000?'Phone connected':'Waiting for your phone'}</div>
-          <label className="field-label" htmlFor="remote-link">Open this link on your other device</label><input id="remote-link" value={remoteURL(roomId)} readOnly onClick={e=>e.currentTarget.select()}/>
+          <div className="pair-qr"><QRCodeSVG value={remoteURL(roomId)} size={208} level="M" marginSize={4}/><strong>Scan with your phone camera</strong><span>Keep this game open on the big screen.</span></div><label className="field-label" htmlFor="remote-link">Open this link on your other device</label><input id="remote-link" value={remoteURL(roomId)} readOnly onClick={e=>e.currentTarget.select()}/>
           <div className="share-actions"><button className="primary-button" onClick={copyLink}>{copied?<Check size={16}/>:<Copy size={16}/>} {copied?'Copied':'Copy link'}</button><button className="outline-button" onClick={shareLink}><Share2 size={16}/> Share</button></div>
           <a className="test-remote" href={remoteURL(roomId)} target="_blank" rel="noreferrer">Try the remote in another tab ↗</a>
           <p className="setup-note">Open this link on your phone while the game stays open on your cat’s device. The link lasts two hours.</p>

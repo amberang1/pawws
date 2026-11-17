@@ -17,8 +17,8 @@ export function MainMenu({ onSelectGame, onTogether }: { onSelectGame: (game: Ga
   const [instructions, setInstructions] = useState(false);
   return <main className="home-page">
     <header className="home-header"><span className="wordmark">pawws<span>.</span></span><button className="text-button" onClick={() => setInstructions(!instructions)}>How to play</button></header>
-    <div className="app-intro"><h1>Pick a game</h1><p>Play together with your cat, or let them explore.</p></div>
-    {instructions && <section className="how-panel"><div><strong>1. Pick a little world</strong><p>Open it on a tablet or phone, placed securely on a flat surface.</p></div><div><strong>2. Let curiosity happen</strong><p>Watching counts. Your cat can also hold, tap and swipe the scene.</p></div><div><strong>3. Play together</strong><p>Open a remote link on your phone to trigger a sweep, rustle or gust. Hold the small controls button to return.</p></div></section>}
+    <div className="app-intro"><h1>Pick a game</h1><p>Play on a tablet, TV or monitor. Use your phone to tease.</p></div>
+    {instructions && <section className="how-panel"><div><strong>1. Pick a little world</strong><p>Open it on a tablet or phone, placed securely on a flat surface.</p></div><div><strong>2. Let curiosity happen</strong><p>Watching counts. Your cat can also hold, tap and swipe the scene.</p></div><div><strong>3. Play together</strong><p>Choose Play together and scan the QR code with your phone. Your TV or monitor needs a browser, or a connected computer. Hold the small controls button to return.</p></div></section>}
     <section className="worlds-section">
       <div className="section-heading"><h2>Games</h2><span>{worlds.length} games</span></div>
       <div className="world-grid">{worlds.map((g, i) => <article className="world-card" key={g.id}>

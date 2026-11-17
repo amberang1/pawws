@@ -102,3 +102,15 @@ test('pause survives heartbeat, while explicit movement and game changes release
   state=await(await f.request(path,'POST',command('game',{game:'mouse'}))).json();assert.deepEqual(state.control,{x:.5,y:.5,active:false,hidden:false,twitch:0});
 });
 
+
+test('owner catch persists through polling and heartbeats; release restarts movement once',async()=>{
+  const f=fixture(),room=await create(f,'door'),path='/'+room.id;
+  let state=await(await f.request(path,'POST',command('catch'))).json();assert.equal(state.caught,true);
+  state=await(await f.request(path,'POST',command('host-heartbeat'))).json();assert.equal(state.caught,true);
+  state=await(await f.request(path)).json();assert.equal(state.caught,true);
+  const release=command('release');
+  state=await(await f.request(path,'POST',release)).json();assert.equal(state.caught,false);assert.equal(state.move,1);
+  state=await(await f.request(path,'POST',release)).json();assert.equal(state.move,1);
+  await f.request(path,'POST',command('catch'));
+  state=await(await f.request(path,'POST',command('game',{game:'mouse'}))).json();assert.equal(state.caught,false);
+});
