@@ -5,6 +5,7 @@ import { useRemote } from '../lib/remote';
 import { EverydayWorld, type World } from '../games/EverydayWorlds';
 
 export const worlds: { id: World; title: string; eyebrow: string; description: string; move: string; peek: string }[] = [
+  { id: 'door', title: 'Under the Door', eyebrow: 'Something is peeking out', description: 'A feather slips under the door, twitches, and disappears.', move: 'Move the feather', peek: 'Peek under the door' },
   { id: 'ribbon', title: 'String & Seek', eyebrow: 'You pull the strings', description: 'A twitch, a curl, a disappearing end. You decide what happens next.', move: 'Pull the string', peek: 'Peek around the curtain' },
   { id: 'mouse', title: 'Mouse Behind the Skirting', eyebrow: 'Wait. Was that a whisker?', description: 'Tiny feet, twitching whiskers, and three very suspicious holes.', move: 'Scurry across the floor', peek: 'Peek from a hole' },
   { id: 'rain', title: 'Rainy Ride', eyebrow: 'A little mesmerising', description: 'Raindrops race. Wipers sweep. The world can wait.', move: 'Sweep the wipers', peek: 'Drop a leaf' },
@@ -45,4 +46,5 @@ export function RemoteControl({ id, onClose }: { id: string; onClose: () => void
     </div>
   </main>;
 }
+
 

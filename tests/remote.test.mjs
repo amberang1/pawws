@@ -73,7 +73,7 @@ test('unavailable storage reports a useful error instead of pretending to pair',
 
 test('new worlds pair and keep normalized manual positions and hiding state',async()=>{
   const f=fixture();
-  for(const game of ['ribbon','mouse']){
+  for(const game of ['ribbon','mouse','door']){
     const room=await create(f,game),path='/'+room.id;
     const control={x:.83,y:.24,active:true,hidden:true,twitch:3};
     let r=await f.request(path,'POST',command('control',{control}));
@@ -101,3 +101,4 @@ test('pause survives heartbeat, while explicit movement and game changes release
   state=await(await f.request(path,'POST',command('move'))).json();assert.equal(state.paused,false);assert.equal(state.control.active,false);
   state=await(await f.request(path,'POST',command('game',{game:'mouse'}))).json();assert.deepEqual(state.control,{x:.5,y:.5,active:false,hidden:false,twitch:0});
 });
+

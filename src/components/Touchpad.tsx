@@ -7,7 +7,7 @@ const initial:ToyControl={x:.5,y:.5,active:false,hidden:false,twitch:0};
 export function Touchpad({world,control,disabled,onControl}:{world:World;control?:ToyControl;disabled:boolean;onControl:(value:ToyControl)=>void}) {
   const [value,setValue]=useState<ToyControl>(control||initial);
   const current=useRef(value),pointer=useRef<number|null>(null);
-  const manual=world==='ribbon'||world==='mouse';
+  const manual=world==='ribbon'||world==='mouse'||world==='door';
   useEffect(()=>{const next={...initial,...control};current.current=next;setValue(next);},[world]);
   useEffect(()=>{if(pointer.current===null && control){current.current=control;setValue(control);}},[control]);
   function update(patch:Partial<ToyControl>){const next={...current.current,...patch};current.current=next;setValue(next);onControl(next);}
@@ -22,9 +22,9 @@ export function Touchpad({world,control,disabled,onControl}:{world:World;control
       onPointerCancel={()=>{pointer.current=null;}}
       onLostPointerCapture={()=>{pointer.current=null;}}
       onKeyDown={e=>{if(disabled)return;const keys:Record<string,Partial<ToyControl>>={ArrowLeft:{x:Math.max(.04,value.x-.04)},ArrowRight:{x:Math.min(.96,value.x+.04)},ArrowUp:{y:Math.max(.04,value.y-.04)},ArrowDown:{y:Math.min(.96,value.y+.04)},' ':{active:true}};if(keys[e.key]){e.preventDefault();update({active:true,hidden:false,...keys[e.key]});}}}>
-      <span className="pad-edge">{world==='ribbon'?'CURTAIN →':'↑ MOUSE HOLES'}</span>
+      <span className="pad-edge">{world==='ribbon'?'CURTAIN →':world==='door'?'↑ DOOR GAP':'↑ MOUSE HOLES'}</span>
       <span className="pad-crosshair horizontal"/><span className="pad-crosshair vertical"/>
-      <span className="toy-dot" style={{left:value.x*100+'%',top:value.y*100+'%'}}><span>{world==='ribbon'?'〰':'•'}</span></span>
+      <span className="toy-dot" style={{left:value.x*100+'%',top:value.y*100+'%'}}><span>{world==='ribbon'||world==='door'?'〰':'•'}</span></span>
       <span className="pad-instruction">{value.hidden?'Hidden. Make them wait…':'Drag here to move the toy'}</span>
     </div>
     <p className="pad-help"><Hand size={12}/> Lift your finger to hold still. Let them come closer.</p>
@@ -36,3 +36,4 @@ export function Touchpad({world,control,disabled,onControl}:{world:World;control
     <p className="pad-help">The toy follows across the internet; response depends on your connection.</p>
   </section>;
 }
+

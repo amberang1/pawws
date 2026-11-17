@@ -1,4 +1,4 @@
-export type GameType = 'koi' | 'bug' | 'shadows' | 'gravity' | 'hunt' | 'coplay' | 'sound' | 'string' | 'cone' | 'rain' | 'bag' | 'receipt' | 'ribbon' | 'mouse';
+export type GameType = 'koi' | 'bug' | 'shadows' | 'gravity' | 'hunt' | 'coplay' | 'sound' | 'string' | 'cone' | 'rain' | 'bag' | 'receipt' | 'ribbon' | 'mouse' | 'door';
 
 export interface PlayStats {
   game: GameType;
@@ -7,4 +7,5 @@ export interface PlayStats {
   catches: number;
   preyType: string;
 }
+
 

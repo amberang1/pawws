@@ -16,7 +16,7 @@ import { DanglingString } from './games/DanglingString';
 import { RollingCone } from './games/RollingCone';
 
 const oldGames = { koi: KoiRipplePond, bug: BugUnderGlass, shadows: PeekABooShadows, gravity: GravityChaos, hunt: HuntCycle, coplay: CoPlayMode, sound: SoundReactor, string: DanglingString, cone: RollingCone };
-const isWorld = (g: string): g is World => ['rain', 'bag', 'receipt', 'ribbon', 'mouse'].includes(g);
+const isWorld = (g: string): g is World => ['rain', 'bag', 'receipt', 'ribbon', 'mouse', 'door'].includes(g);
 function storedHost() { try { const data = JSON.parse(sessionStorage.getItem('pawhunt-host') || 'null'); return data && /^[a-f0-9]{32}$/.test(data.id) && isWorld(data.game) ? data : null; } catch { return null; } }
 function remoteFromHash() { return window.location.hash.match(/^#remote=([a-f0-9]{32})$/)?.[1] || null; }
 export default function App() {
@@ -138,4 +138,5 @@ export default function App() {
     {report && <div className="panel-backdrop"><section className="report-panel" role="dialog" aria-modal="true" aria-labelledby="report-title"><span className="eyebrow">THAT WAS A LITTLE ADVENTURE</span><h2 id="report-title">Curiosity, satisfied?</h2><p>Watching is part of playing, too.</p><div className="report-stats"><div><strong>{Math.floor(report.timeSpent/60)}:{String(report.timeSpent%60).padStart(2,'0')}</strong><span>Time together</span></div><div><strong>{report.taps}</strong><span>Touches</span></div><div><strong>{report.catches}</strong><span>Target contacts</span></div></div><button className="primary-button" onClick={()=>setReport(null)}>Back to the little worlds <ArrowLeft className="flip" size={16}/></button></section></div>}
   </>;
 }
+
 
