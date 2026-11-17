@@ -6,7 +6,7 @@ import { EverydayWorld, type World } from '../games/EverydayWorlds';
 
 export const worlds: { id: World; title: string; eyebrow: string; description: string; move: string; peek: string }[] = [
   { id: 'door', title: 'Under the Door', eyebrow: 'Something is peeking out', description: 'A feather slips under the door, twitches, and disappears.', move: 'Move the feather', peek: 'Peek under the door' },
-  { id: 'ribbon', title: 'Shoelace & Seek', eyebrow: 'You pull the strings', description: 'A braided shoelace curls beside a shoe. Pin it and watch the loose end.', move: 'Pull slowly', peek: 'Feed out the lace' },
+  { id: 'ribbon', title: 'Shoelace & Seek', eyebrow: 'You pull the strings', description: 'A braided shoelace curls across the floor. Pin it and watch the loose end.', move: 'Pull slowly', peek: 'Feed out the lace' },
   { id: 'mouse', title: 'Mouse Behind the Skirting', eyebrow: 'Wait. Was that a whisker?', description: 'Tiny feet, twitching whiskers, and three very suspicious holes.', move: 'Go to the crumb', peek: 'Peek from a hole' },
   { id: 'koi', title: 'Shallow Pond', eyebrow: 'Just below the surface', description: 'Two koi drift over pebbles. A paw sends ripples; the fish dart for cover.', move: 'Swim into the open', peek: 'Drop some food' },
   { id: 'bug', title: 'Kitchen Beetle', eyebrow: 'Antennae first', description: 'A tiny visitor explores a crumb, then slips beneath a cork coaster.', move: 'Go to a crumb', peek: 'Show antennae' },

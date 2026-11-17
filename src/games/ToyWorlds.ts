@@ -60,12 +60,6 @@ export function stringAndSeek(c:CanvasRenderingContext2D,w:number,h:number):ToyS
         }
       }
       c.drawImage(base,0,0);
-      // A worn canvas shoe makes the braided cord read as an actual shoelace.
-      c.save();c.translate(w*.17,h*.76);c.rotate(-.35);const shoe=Math.min(w*.3,h*.3,165);c.scale(shoe/150,shoe/150);
-      c.save();c.shadowColor='#34352b44';c.shadowBlur=14;c.shadowOffsetY=8;ellipse(c,0,0,73,35,'#d2cfbd');c.restore();
-      ellipse(c,0,-5,72,32,'#eeeade');ellipse(c,-26,-8,28,21,'#9a9d8d');ellipse(c,-27,-8,21,15,'#555d50');ellipse(c,39,-4,25,27,'#e0decb');
-      c.strokeStyle='#b7b7a3';c.lineWidth=2;c.beginPath();c.ellipse(0,2,71,31,0,0,7);c.stroke();
-      for(let i=0;i<4;i++){const x=-4+i*9;ellipse(c,x,-18,2,2,'#6a766e');ellipse(c,x,10,2,2,'#6a766e');c.strokeStyle='#5b7890';c.lineWidth=3;c.beginPath();c.moveTo(x,-18);c.lineTo(x+7,10);c.stroke();}c.restore();
       function rope(offset:number,color:string,width:number) {
         c.beginPath();c.moveTo(pts[0].x,pts[0].y+offset);
         for(let i=1;i<n-1;i++)c.quadraticCurveTo(pts[i].x,pts[i].y+offset,(pts[i].x+pts[i+1].x)/2,(pts[i].y+pts[i+1].y)/2+offset);
