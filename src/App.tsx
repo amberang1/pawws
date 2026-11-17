@@ -66,7 +66,7 @@ export default function App() {
   }
   useEffect(() => { if(remoteId)return; try { if(roomId && active && isWorld(active)) sessionStorage.setItem('pawhunt-host',JSON.stringify({id:roomId,game:active})); else sessionStorage.removeItem('pawhunt-host'); } catch {} },[roomId,active,remoteId]);
   useEffect(() => {
-    if(room && !ended && room.game !== active && roomId) begin(room.game);
+    if(room && !ended && room.game !== active && roomId) { begin(room.game); setPanel(false); }
   }, [room?.game, roomId, ended]);
   useEffect(() => {
     if(ended) { setMessage('The remote session ended. You can keep playing here or connect again.'); setRoomId(null); setLocal({ ...quiet }); }
@@ -143,7 +143,7 @@ export default function App() {
         <div className="remote-setup"><Radio size={21}/><h3>Be the mystery.</h3><p>Leave this screen with your cat. Open the remote on your phone to move, pause and peek.</p>
         {!roomId ? <button className="primary-button" disabled={busy} onClick={()=>connect(world.id)}>{busy?'Making your remote…':'Pair your phone'} <ArrowLeft size={16} className="flip"/></button> : <>
           <div className={'connection '+(room && Date.now()-room.remoteSeen<26000?'online':'')}><span className="little-dot"/>{room && Date.now()-room.remoteSeen<26000?'Phone connected':'Waiting for your phone'}</div>
-          <div className="pair-qr"><QRCodeSVG value={remoteURL(roomId)} size={208} level="M" marginSize={4}/><strong>Scan with your phone camera</strong><span>Keep this game open on the big screen.</span></div><label className="field-label" htmlFor="remote-link">Open this link on your other device</label><input id="remote-link" value={remoteURL(roomId)} readOnly onClick={e=>e.currentTarget.select()}/>
+          <div className="pair-qr"><QRCodeSVG value={remoteURL(roomId)} size={208} level="M" marginSize={4}/><strong>Scan with your phone camera</strong><span>After scanning, choose and switch games on your phone.</span></div><label className="field-label" htmlFor="remote-link">Open this link on your other device</label><input id="remote-link" value={remoteURL(roomId)} readOnly onClick={e=>e.currentTarget.select()}/>
           <div className="share-actions"><button className="primary-button" onClick={copyLink}>{copied?<Check size={16}/>:<Copy size={16}/>} {copied?'Copied':'Copy link'}</button><button className="outline-button" onClick={shareLink}><Share2 size={16}/> Share</button></div>
           <a className="test-remote" href={remoteURL(roomId)} target="_blank" rel="noreferrer">Try the remote in another tab ↗</a>
           <p className="setup-note">Open this link on your phone while the game stays open on your cat’s device. The link lasts two hours.</p>

@@ -27,11 +27,12 @@ export function RemoteControl({ id, onClose }: { id: string; onClose: () => void
   return <main className="remote-page">
     <header className="remote-header"><button className="text-button" onClick={onClose}><ArrowLeft size={17} /> Back to games</button><span className="wordmark small">pawws<span>.</span></span></header>
     <div className="remote-body">
-      <h1>{selected?.title || 'Play together'}</h1>
+      <h1>Play together</h1>
       <p className="muted">Keep the game open on your cat’s screen.</p>
       <div className={'connection ' + (hostOnline && !error ? 'online' : '')}><Radio size={14} />{ended ? 'Session ended' : error ? 'Connection interrupted' : !room ? 'Connecting to the cat’s screen…' : hostOnline ? 'Connected to the cat’s screen' : 'Waiting for the cat’s screen…'}</div>
       {error && <div className="notice" role="alert">{error}</div>}
       {room && !ended && <>
+        <div className="game-switcher"><label className="field-label" htmlFor="remote-world">Choose a game for your cat</label><select id="remote-world" value={room.game} disabled={pending > 0 || !hostOnline || !!error} onChange={e => send('game', e.target.value as World)}>{worlds.map(g => <option key={g.id} value={g.id}>{g.title}</option>)}</select><p>Switch games anytime — your phone stays connected.</p></div>
         <details className="remote-preview"><summary>See an illustrated preview</summary><div className="remote-mini"><EverydayWorld world={room.game} preview tease={room}/></div><p className="remote-caption">Watch your cat’s screen for the actual position.</p></details>
         {room.game==='door'||room.game==='bug' ? <Touchpad world={room.game} control={room.control} disabled={ended || !hostOnline || !!error || !!room.caught} onControl={sendControl}/> : <GameRemote world={room.game} control={room.control} disabled={ended || !hostOnline || !!error || !!room.caught} onControl={sendControl}/>}
         {room.game!=='rain' && <button className={'catch-button '+(room.caught?'is-caught':'')} disabled={pending>0 || !hostOnline || !!error} onClick={()=>command(room.caught?'release':'catch')}><Hand size={23}/><strong>{room.caught?'Let go →':'Caught it!'}</strong><span>{room.caught?'Send the toy off again':'Tap when their paw lands on the toy'}</span></button>}
@@ -41,8 +42,7 @@ export function RemoteControl({ id, onClose }: { id: string; onClose: () => void
         </div>}
         <button className="pause-button" disabled={pending > 0} onClick={() => command(room.paused ? 'resume' : 'pause')}>{room.paused ? <Play size={18}/> : <Pause size={18}/>} {room.paused ? 'Let it play' : 'Pause & build suspense'}</button>
         <p className="sent-message" role="status">{pending ? 'Sending…' : sent || 'Give them a moment to watch between moves.'}</p>
-        <label className="field-label" htmlFor="remote-world">Something different?</label>
-        <select id="remote-world" value={room.game} disabled={pending > 0} onChange={e => send('game', e.target.value as World)}>{worlds.map(g => <option key={g.id} value={g.id}>{g.title}</option>)}</select>
+
       </>}
       {ended && <button className="primary-button" onClick={onClose}>Back to games <ArrowUpRight size={16}/></button>}
       <p className="remote-footnote">No need to tap constantly. The waiting is part of the game.</p>
