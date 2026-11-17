@@ -19,9 +19,13 @@ const oldGames = { koi: KoiRipplePond, bug: BugUnderGlass, shadows: PeekABooShad
 const isWorld = (g: string): g is World => ['rain', 'bag', 'receipt', 'ribbon', 'mouse', 'door'].includes(g);
 function storedHost() { try { const data = JSON.parse(sessionStorage.getItem('pawhunt-host') || 'null'); return data && /^[a-f0-9]{32}$/.test(data.id) && isWorld(data.game) ? data : null; } catch { return null; } }
 function remoteFromHash() { return window.location.hash.match(/^#remote=([a-f0-9]{32})$/)?.[1] || null; }
+function gameFromHash(): GameType | null {
+  const g=window.location.hash.match(/^#game=([a-z]+)$/)?.[1];
+  return g && (isWorld(g)||Object.hasOwn(oldGames,g)) ? g as GameType : null;
+}
 export default function App() {
   const [remoteId, setRemoteId] = useState(remoteFromHash);
-  const [active, setActive] = useState<GameType | null>(() => remoteFromHash() ? null : storedHost()?.game || null);
+  const [active, setActive] = useState<GameType | null>(() => remoteFromHash() ? null : gameFromHash() || storedHost()?.game || null);
   const [panel, setPanel] = useState(false);
   const [roomId, setRoomId] = useState<string | null>(() => remoteFromHash() ? null : storedHost()?.id || null);
   const [local, setLocal] = useState<Tease>(quiet);
@@ -38,9 +42,22 @@ export default function App() {
   const { room, error, ended, send } = useRemote(roomId, 'host');
   const tease = room && !ended ? room : local;
   const world = worlds.find(g => g.id === active);
-  useEffect(() => { const change = () => setRemoteId(remoteFromHash()); window.addEventListener('hashchange', change); return () => window.removeEventListener('hashchange', change); }, []);
+  useEffect(() => {
+    const change=()=>{
+      generation.current++;
+      if(roomId)endRoom(roomId).catch(()=>{});
+      setRoomId(null);setRemoteId(remoteFromHash());setActive(gameFromHash());
+      setPanel(false);setReport(null);setLocal({...quiet});stats.current=null;
+    };
+    window.addEventListener('hashchange',change);window.addEventListener('popstate',change);
+    return ()=>{window.removeEventListener('hashchange',change);window.removeEventListener('popstate',change);};
+  },[roomId]);
+  useEffect(()=>{
+    if(!window.location.hash && storedHost()?.game)history.pushState(null,'','#game='+storedHost().game);
+  },[]);
   const onAction = useCallback((action: 'tap' | 'catch') => { if(stats.current) stats.current[action === 'tap' ? 'taps' : 'catches']++; }, []);
   function begin(game: GameType) {
+    if(window.location.hash !== '#game='+game)history.pushState(null,'','#game='+game);
     generation.current++;
     setActive(game); setLocal({ ...quiet }); setReport(null); setMessage(''); setCopied(false);
     stats.current = { game, timeSpent: 0, taps: 0, catches: 0, preyType: worlds.find(g => g.id === game)?.title || game };
@@ -95,6 +112,7 @@ export default function App() {
     catch(e: any){setMessage(e.message);}finally{setBusy(false);}
   }
   function leave() {
+    history.pushState(null,'',window.location.pathname+window.location.search);
     generation.current++;
     if(roomId) endRoom(roomId).catch(() => {});
     setRoomId(null);
