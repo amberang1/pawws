@@ -74,18 +74,18 @@ export function stringAndSeek(c:CanvasRenderingContext2D,w:number,h:number):ToyS
       curtain(t);
     },
     command(kind){if(kind==='peek'){peeking=1.4;twitch=.35;if(!input.hidden)target={x:w*.8,y:rand(h*.3,h*.7)};}else{target={x:rand(w*.15,w*.7),y:rand(h*.2,h*.8)};twitch=.6;timer=3;}},
-    down(id,p){let closest=-1,d=35;pts.forEach((v,i)=>{const distance=Math.hypot(v.x-p.x,v.y-p.y);if(v.x<w*.84&&distance<d){closest=i;d=distance;}});if(closest>=0){pins.set(id,{index:closest,p});return true;}return false;},
+    down(id,p){let closest=-1,d=35;pts.forEach((v,i)=>{const distance=Math.hypot(v.x-p.x,v.y-p.y);if(v.x<w*.84&&distance<d){closest=i;d=distance;}});if(closest>=0){pins.set(id,{index:closest,p});twitch=.45;return true;}return false;},
     drag(id,p){const pin=pins.get(id);if(pin)pin.p={x:clamp(p.x,5,w*.83),y:clamp(p.y,5,h-5)};},
-    up(id){pins.delete(id);}
+    up(id){if(pins.has(id)){pins.delete(id);twitch=.45;}}
   };
 }
 
 export function hidingMouse(c:CanvasRenderingContext2D,w:number,h:number):ToyScene {
   const base=floor(w,h,false), size=clamp(Math.min(w,h)*.085,23,52), wall=Math.min(h*.22,130), holes=[w*.2,w*.5,w*.8];
-  let input={...neutral},x=w*.5,y=h*.62,angle=-.3,target={x:w*.32,y:h*.58},timer=1.5,phase=0,twitch=0,lastTwitch=0,peek=0,held:number|null=null,holdPoint:Point|null=null,hole=1;
+  let input={...neutral},x=w*.5,y=h*.62,angle=-.3,target={x:w*.32,y:h*.58},timer=1.5,phase=0,twitch=0,lastTwitch=0,peek=0,flee=0,escapeTarget={x:w*.5,y:h*.5},held:number|null=null,holdPoint:Point|null=null,hole=1;
   const tail=Array.from({length:14},()=>({x:x-70,y}));
   function renderMouse(t:number, speed:number) {
-    c.save();c.translate(x,y);c.rotate(angle);
+    c.save();c.translate(x+(held!==null?Math.sin(t*34)*Math.min(size*.045,2):0),y);c.rotate(angle);
     const s=size/36;c.scale(s,s);
     c.save();c.shadowBlur=10;c.shadowColor='#342b2670';ellipse(c,-5,4,35,19,'#51483e');c.restore();
     const fur=c.createRadialGradient(-12,-8,3,-5,0,37);fur.addColorStop(0,'#a79a86');fur.addColorStop(.6,'#756a59');fur.addColorStop(1,'#504839');
@@ -107,12 +107,12 @@ export function hidingMouse(c:CanvasRenderingContext2D,w:number,h:number):ToySce
     draw(dt,t){
       let speed=0;
       if(dt){
-        phase+=dt;timer-=dt;twitch=Math.max(0,twitch-dt);peek=Math.max(0,peek-dt);
+        phase+=dt;timer-=dt;twitch=Math.max(0,twitch-dt);peek=Math.max(0,peek-dt);flee=Math.max(0,flee-dt);
         if(held===null){
           if(!input.active&&timer<=0){if(Math.random()<.35){hole=Math.floor(rand(0,3));target={x:holes[hole],y:wall-size*.7};timer=rand(1.5,3);}else{target={x:rand(w*.1,w*.9),y:rand(wall+size*1.7,h-size*2)};timer=rand(1.2,3.5);}}
-          let dest=input.active?{x:input.x*w,y:input.y*h}:target;
-          if(input.hidden){hole=holes.reduce((best,v,i)=>Math.abs(v-input.x*w)<Math.abs(holes[best]-input.x*w)?i:best,0);dest={x:holes[hole],y:peek>0?wall+size*.25:wall-size*1.6};}
-          else dest={x:clamp(dest.x,size*1.6,w-size*1.6),y:!input.active&&target.y<wall?target.y:clamp(dest.y,wall+size*1.1,h-size*1.2)};
+          let dest=flee>0?escapeTarget:input.active?{x:input.x*w,y:input.y*h}:target;
+          if(input.hidden && flee<=0){hole=holes.reduce((best,v,i)=>Math.abs(v-input.x*w)<Math.abs(holes[best]-input.x*w)?i:best,0);dest={x:holes[hole],y:peek>0?wall+size*.25:wall-size*1.6};}
+          else dest={x:clamp(dest.x,size*1.6,w-size*1.6),y:flee<=0&&!input.active&&target.y<wall?target.y:clamp(dest.y,wall+size*1.1,h-size*1.2)};
           const dx=dest.x-x,dy=dest.y-y,d=Math.hypot(dx,dy),v=Math.min(d*7,Math.min(w,h)*.65)*(twitch>0?1.7:1);
           if(d>.5){const step=Math.min(d,v*dt);x+=dx/(d||1)*step;y+=dy/(d||1)*step;speed=v;const a=Math.atan2(dy,dx);angle+=Math.atan2(Math.sin(a-angle),Math.cos(a-angle))*(1-Math.exp(-dt*12));}
           if(twitch>0){x+=Math.sin(t*55)*dt*25;y+=Math.cos(t*48)*dt*14;}
@@ -132,8 +132,9 @@ export function hidingMouse(c:CanvasRenderingContext2D,w:number,h:number):ToySce
       if(input.hidden&&peek>0&&y<wall+size*.3){c.save();c.translate(holes[hole],wall-5);ellipse(c,0,0,size*.22,size*.13,'#bd9685');c.strokeStyle='#dfd5bf';c.lineWidth=1;for(const side of [-1,1])for(let i=0;i<3;i++){c.beginPath();c.moveTo(side*size*.12,-2);c.lineTo(side*size*(.6+i*.1),-size*(.1+i*.12));c.stroke();}c.restore();}
     },
     command(kind){if(kind==='peek'){peek=1.5;twitch=.3;if(!input.hidden){hole=Math.floor(rand(0,3));target={x:holes[hole],y:wall+size*1.3};}}else{target={x:rand(w*.15,w*.85),y:rand(wall+size*2,h-size*2)};timer=3;twitch=.5;}},
-    down(id,p){if(held!==null||y<wall)return false;if(Math.hypot(p.x-x,p.y-y)<size*1.1+14){held=id;holdPoint=p;return true;}return false;},
+    down(id,p){if(held!==null||y<wall)return false;if(Math.hypot(p.x-x,p.y-y)<size*1.1+14){held=id;holdPoint=p;twitch=.4;return true;}if(Math.hypot(p.x-x,p.y-y)<size*3){const a=Math.atan2(y-p.y,x-p.x);escapeTarget={x:x+Math.cos(a)*size*4,y:y+Math.sin(a)*size*4};flee=.7;twitch=.4;}return false;},
     drag(id,p){if(held===id){x=clamp(p.x,size,w-size);y=clamp(p.y,wall+size,h-size);holdPoint=p;}},
-    up(id){if(held===id){held=null;holdPoint=null;twitch=.15;timer=1.5;}}
+    up(id){if(held===id){const a=angle;held=null;holdPoint=null;twitch=.35;escapeTarget={x:x+Math.cos(a)*size*4,y:y+Math.sin(a)*size*4};flee=.8;timer=1.5;}}
   };
 }
+

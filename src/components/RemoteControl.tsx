@@ -21,11 +21,10 @@ export function RemoteControl({ id, onClose }: { id: string; onClose: () => void
     const success=await send(action); if(!success)return; setSent(action === 'move' ? 'Movement sent' : action === 'peek' ? 'A little surprise sent' : action === 'pause' ? 'Paused' : 'Playing again');
   }
   return <main className="remote-page">
-    <header className="remote-header"><button className="text-button" onClick={onClose}><ArrowLeft size={17} /> Back to games</button><span className="wordmark small">PawHunt<span>.</span></span></header>
+    <header className="remote-header"><button className="text-button" onClick={onClose}><ArrowLeft size={17} /> Back to games</button><span className="wordmark small">pawws<span>.</span></span></header>
     <div className="remote-body">
-      <span className="eyebrow">YOU’RE THE TOY OPERATOR</span>
-      <h1>You’re the mystery.<br /><em>They’re the hunter.</em></h1>
-      <p className="muted">Keep the game open on your cat’s screen.<br />You’re in charge of what happens next.</p>
+      <h1>Play together</h1>
+      <p className="muted">Keep the game open on your cat’s screen.</p>
       <div className={'connection ' + (hostOnline && !error ? 'online' : '')}><Radio size={14} />{ended ? 'Session ended' : error ? 'Connection interrupted' : !room ? 'Connecting to the cat’s screen…' : hostOnline ? 'Connected to the cat’s screen' : 'Waiting for the cat’s screen…'}</div>
       {error && <div className="notice" role="alert">{error}</div>}
       {room && !ended && <>
@@ -46,3 +45,4 @@ export function RemoteControl({ id, onClose }: { id: string; onClose: () => void
     </div>
   </main>;
 }
+

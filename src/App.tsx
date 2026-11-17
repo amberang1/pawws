@@ -105,7 +105,7 @@ export default function App() {
   function cancelHold(){if(hold.current)clearTimeout(hold.current);setHolding(false);}
   function startHold(e:React.PointerEvent<HTMLButtonElement>){e.currentTarget.setPointerCapture(e.pointerId);cancelHold();setHolding(true);hold.current=setTimeout(()=>{setPanel(true);setHolding(false);},900);}
   async function copyLink(){if(!roomId)return;try{await navigator.clipboard.writeText(remoteURL(roomId));setCopied(true);}catch{setMessage('Select and copy the remote link below.');}}
-  async function shareLink(){if(!roomId)return;try{if(navigator.share)await navigator.share({title:'PawHunt remote',text:'Open this on your phone to tease your cat.',url:remoteURL(roomId)});else await copyLink();}catch(e:any){if(e.name!=='AbortError')setMessage('Use Copy link to share the remote.');}}
+  async function shareLink(){if(!roomId)return;try{if(navigator.share)await navigator.share({title:'Pawws remote',text:'Open this on your phone to tease your cat.',url:remoteURL(roomId)});else await copyLink();}catch(e:any){if(e.name!=='AbortError')setMessage('Use Copy link to share the remote.');}}
   function localCommand(kind:'move'|'peek'|'pause'|'resume'){if(roomId)send(kind);else setLocal(p=>({...p,paused:kind==='pause',...(kind==='move'||kind==='peek'?{[kind]:p[kind]+1}:{})}));}
   if(remoteId)return <RemoteControl id={remoteId} onClose={()=>{window.location.hash='';setRemoteId(null);}}/>;
   const OldGame = active && !isWorld(active) ? oldGames[active] : null;
@@ -138,3 +138,4 @@ export default function App() {
     {report && <div className="panel-backdrop"><section className="report-panel" role="dialog" aria-modal="true" aria-labelledby="report-title"><span className="eyebrow">THAT WAS A LITTLE ADVENTURE</span><h2 id="report-title">Curiosity, satisfied?</h2><p>Watching is part of playing, too.</p><div className="report-stats"><div><strong>{Math.floor(report.timeSpent/60)}:{String(report.timeSpent%60).padStart(2,'0')}</strong><span>Time together</span></div><div><strong>{report.taps}</strong><span>Touches</span></div><div><strong>{report.catches}</strong><span>Target contacts</span></div></div><button className="primary-button" onClick={()=>setReport(null)}>Back to the little worlds <ArrowLeft className="flip" size={16}/></button></section></div>}
   </>;
 }
+
