@@ -12,26 +12,33 @@ export function rainyRide(c:CanvasRenderingContext2D,w:number,h:number):ToyScene
   const drops:Drop[]=Array.from({length:Math.min(420,Math.floor(w*h/2200)+60)},()=>({x:rand(0,w),y:rand(0,h*.87),r:rand(1.3,4.2),v:rand(2,19),wait:0,alive:true,age:1}));
   const pivots=[{x:w*.23,y:h*.91},{x:w*.73,y:h*.91}],length=Math.min(h*.82,w*.98),bladeWidth=Math.max(7,Math.min(w,h)*.017);
   let progress=1, running=false, duration=1.55, wait=1.2, steady=0, burst=0, input:ToyControl|undefined,lastTwitch=0;
-  let mode='intermittent',strength=.5, surprise:{x:number;y:number;kind:'leaf'|'bug';age:number}|null=null;
+  let forcedNext=false, mode='slow',strength=.5, surprise:{x:number;y:number;kind:'leaf'|'bug';age:number;hits:number;lastPass:number}|null=null;
   let finger:{x:number;y:number;age:number}|null=null;
-  function start(){running=true;progress=0;duration=steady%4===3?rand(1.05,1.85):1.55;}
+  function start(){running=true;progress=0;duration=mode==='fast'?.85:mode==='slow'?2.3:1.55;}
   function clear(from:number,to:number){for(const [previous,current] of sweepAngles(from,to))for(const drop of drops){if(drop.alive&&pivots.some(p=>sweptDrop(drop,p,length,previous,current,bladeWidth))){drop.alive=false;drop.wait=rand(1.8,5);drop.age=0;}}}
   return {
     control(next){input=next;if(next.strength!==undefined)strength=next.strength;
       if(next.twitch!==lastTwitch){lastTwitch=next.twitch;
-        if(next.kind==='rain-steady'){mode='steady';wait=.1;}
+        if(next.kind==='rain-slow'){mode='slow';burst=0;forcedNext=false;duration=2.3;wait=.1;}
+        else if(next.kind==='rain-fast'){mode='fast';burst=0;forcedNext=false;duration=.85;wait=.1;}
+        else if(next.kind==='rain-double'){burst=1;if(!running)start();wait=.1;}
+        else if(next.kind==='rain-steady'){mode='steady';wait=.1;}
         else if(next.kind==='rain-intermittent'){mode='intermittent';wait=1;}
         else if(next.kind==='rain-manual'){mode='manual';}
         else if(next.kind==='rain-sweep'){if(!running)start();}
-        else if(next.kind==='rain-surprise'){surprise={x:rand(w*.2,w*.8),y:rand(h*.18,h*.55),kind:Math.random()<.5?'leaf':'bug',age:0};}
+        else if(next.kind==='rain-surprise'){const pivot=pivots[Math.random()<.5?0:1], angle=rand(-2.15,-1.05), radius=length*rand(.45,.7);surprise={x:Math.max(w*.08,Math.min(w*.92,pivot.x+Math.cos(angle)*radius)),y:Math.max(h*.08,Math.min(h*.78,pivot.y+Math.sin(angle)*radius)),kind:Math.random()<.5?'leaf':'bug',age:0,hits:0,lastPass:-1};}
         else if(next.kind!=='rain-strength'){burst=1;if(!running)start();}
       }},
     draw(dt){
       if(dt){
-        if(finger)finger.age+=dt;if(surprise){surprise.age+=dt;surprise.y+=dt*8;if(surprise.age>9)surprise=null;}
+        if(finger)finger.age+=dt;if(surprise)surprise.age+=dt;
         for(const d of drops){if(!d.alive){d.wait-=dt*(.2+strength*2.5);if(d.wait<=0){d.alive=true;d.x=rand(0,w);d.y=rand(0,h*.86);d.age=0;}}else{d.age=Math.min(1,d.age+dt*.9);d.y+=d.v*dt;if(d.y>h*.88){d.alive=false;d.wait=rand(.8,3);}}}
-        if(running){const previous=progress;progress=Math.min(1,progress+dt/duration);clear(previous,progress);if(surprise&&pivots.some(p=>sweepAngles(previous,progress).some(([a,b])=>sweptDrop({...surprise,r:8},p,length,a,b,bladeWidth))))surprise=null;if(progress>=1){running=false;steady++;if(burst>0){burst--;wait=.15;}else if(mode==='steady')wait=.3;else if(steady%4===0){wait=rand(2.7,5.2);}else wait=steady%7===0?rand(.2,.55):1.15;}}
-        else if(mode!=='manual'){wait-=dt;if(wait<=0){if(steady%6===5)burst=1;start();}}
+        if(running){const previous=progress;progress=Math.min(1,progress+dt/duration);clear(previous,progress);if(surprise){
+          // Count each outbound or return stroke once, regardless of frame rate or overlapping blades.
+          const segments=previous<.5&&progress>.5?[[previous,.5],[.5,progress]]:[[previous,progress]];
+          for(const [from,to] of segments){if(!surprise)break;const pass=steady*2+(from>=.5?1:0);const hit=pivots.some(p=>sweepAngles(from,to).some(([a,b])=>sweptDrop({...surprise!,r:8},p,length,a,b,bladeWidth)));if(hit&&surprise.lastPass!==pass){surprise.lastPass=pass;surprise.hits++;if(surprise.hits>=3)surprise=null;}}
+        }if(progress>=1){running=false;steady++;if(burst>0){burst--;wait=.15;forcedNext=true;}else if(mode==='slow')wait=1.4;else if(mode==='fast'||mode==='steady')wait=.25;else if(steady%4===0){wait=rand(2.7,5.2);}else wait=steady%7===0?rand(.2,.55):1.15;}}
+        else if(mode!=='manual'||forcedNext){wait-=dt;if(wait<=0){forcedNext=false;if(mode==='intermittent'&&steady%6===5)burst=1;start();}}
       }
       c.drawImage(base,0,0);
       for(const d of drops){if(!d.alive)continue;c.save();c.globalAlpha=d.age;c.lineWidth=d.r*.35;c.strokeStyle='#cde5e33b';c.beginPath();c.moveTo(d.x,d.y-d.r*3);c.lineTo(d.x,d.y);c.stroke();

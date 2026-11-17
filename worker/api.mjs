@@ -40,7 +40,7 @@ export async function handleAPI(request, env) {
   if (body.action === 'control') {
     const v = body.control;
     if (!v || !Number.isFinite(v.x) || !Number.isFinite(v.y) || v.x < 0 || v.x > 1 || v.y < 0 || v.y > 1 || typeof v.active !== 'boolean' || typeof v.hidden !== 'boolean' || !Number.isSafeInteger(v.twitch) || v.twitch < 0 || v.twitch > 1000000) return json({ error: 'Invalid toy position.' }, 400);
-    if(v.kind !== undefined && (typeof v.kind !== 'string' || !['hole','mouse-peek','mouse-out','mouse-crumb','mouse-home','mouse-sniff','pond-food','pond-ripple','rain-steady','rain-intermittent','rain-manual','rain-sweep','rain-surprise','rain-strength','bag-target','bag-hold','bag-release','bag-tail','receipt-gust','lace-pull','lace-twitch'].includes(v.kind))) return json({error:'Invalid control.'},400);
+    if(v.kind !== undefined && (typeof v.kind !== 'string' || !['hole','mouse-peek','mouse-out','mouse-crumb','mouse-home','mouse-sniff','pond-food','pond-ripple','rain-slow','rain-fast','rain-double','rain-steady','rain-intermittent','rain-manual','rain-sweep','rain-surprise','rain-strength','bag-target','bag-hold','bag-release','bag-tail','receipt-gust','lace-pull','lace-twitch'].includes(v.kind))) return json({error:'Invalid control.'},400);
     if(v.strength !== undefined && (!Number.isFinite(v.strength) || v.strength<0 || v.strength>1))return json({error:'Invalid strength.'},400);
     state.control = { x: v.x, y: v.y, active: v.active, hidden: v.hidden, twitch: v.twitch, ...(v.kind ? {kind:v.kind}:{}), ...(v.strength !== undefined ? {strength:v.strength}:{}) };
     state.paused = false;

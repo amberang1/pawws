@@ -125,3 +125,12 @@ test('game-specific actions and rain strength reach the cat screen with validati
   }
   state=await(await f.request(path)).json();assert.deepEqual(state.control,control);
 });
+
+test('rain controls deliver slow, fast, and double swipes to the same session',async()=>{
+  const f=fixture(),room=await create(f,'rain'),path='/'+room.id;
+  for(const [index,kind] of ['rain-slow','rain-fast','rain-double'].entries()){
+    const control={x:.5,y:.5,active:true,hidden:false,twitch:index+1,kind,strength:.6};
+    const response=await f.request(path,'POST',command('control',{control}));assert.equal(response.status,200);
+    const state=await(await f.request(path)).json();assert.deepEqual(state.control,control);
+  }
+});
