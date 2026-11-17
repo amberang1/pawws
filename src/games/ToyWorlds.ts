@@ -1,4 +1,4 @@
-export type ToyControl = { x: number; y: number; active: boolean; hidden: boolean; twitch: number };
+export type ToyControl = { x: number; y: number; active: boolean; hidden: boolean; twitch: number; kind?: string; strength?: number };
 export type ToyScene = {
   draw: (dt: number, t: number) => void;
   command: (kind: 'move' | 'peek') => void;
@@ -105,7 +105,15 @@ export function hidingMouse(c:CanvasRenderingContext2D,w:number,h:number):ToySce
     c.restore();
   }
   return {
-    control(next){input=next;if(next.twitch!==lastTwitch){twitch=.7;lastTwitch=next.twitch;}},
+    control(next){input=next;if(next.twitch!==lastTwitch){lastTwitch=next.twitch;
+      if(next.kind==='hole'){hole=Math.min(2,Math.floor(next.x*3));target={x:holes[hole],y:wall-size*1.6};input={...next,active:false};timer=100;peek=0;}
+      else if(next.kind==='mouse-peek'){hole=Math.min(2,Math.floor(next.x*3));target={x:holes[hole],y:wall+size*.2};peek=2;timer=100;}
+      else if(next.kind==='mouse-out'){target={x:holes[Math.min(2,Math.floor(next.x*3))],y:wall+size*3};peek=0;timer=100;}
+      else if(next.kind==='mouse-crumb'){target={...crumb};peek=0;timer=100;}
+      else if(next.kind==='mouse-home'){hole=Math.min(2,Math.floor(next.x*3));target={x:holes[hole],y:wall-size*1.6};peek=0;timer=100;}
+      else if(next.kind==='mouse-sniff'){target={x,y};peek=0;timer=100;twitch=.7;}
+      else twitch=.7;
+    }},
     draw(dt,t){
       let speed=0;
       if(dt){
@@ -121,9 +129,9 @@ export function hidingMouse(c:CanvasRenderingContext2D,w:number,h:number):ToySce
           sniff=Math.max(0,sniff-dt);
           if(!input.active&&stage===2&&Math.hypot(x-crumb.x,y-crumb.y)<size*.65){sniff=.2;angle+=Math.sin(t*15)*dt*.8;}
 
-          let dest=flee>0?escapeTarget:peek>0?target:input.active?{x:input.x*w,y:input.y*h}:target;
+          let dest=flee>0?escapeTarget:input.kind?.startsWith('mouse-')||input.kind==='hole'?target:peek>0?target:input.active?{x:input.x*w,y:input.y*h}:target;
           if(input.hidden && flee<=0){hole=holes.reduce((best,v,i)=>Math.abs(v-input.x*w)<Math.abs(holes[best]-input.x*w)?i:best,0);dest={x:holes[hole],y:peek>0?wall+size*.25:wall-size*1.6};}
-          else dest={x:clamp(dest.x,size*1.6,w-size*1.6),y:flee<=0&&!input.active&&target.y<wall?target.y:clamp(dest.y,wall+size*1.1,h-size*1.2)};
+          else dest={x:clamp(dest.x,size*1.6,w-size*1.6),y:flee<=0&&target.y<wall&&(!input.active||input.kind?.startsWith('mouse-')||input.kind==='hole')?target.y:clamp(dest.y,wall+size*1.1,h-size*1.2)};
           const dx=dest.x-x,dy=dest.y-y,d=Math.hypot(dx,dy),v=Math.min(d*7,Math.min(w,h)*.65)*(twitch>0?1.7:1);
           if(d>.5){const step=Math.min(d,v*dt);x+=dx/(d||1)*step;y+=dy/(d||1)*step;speed=v;const a=Math.atan2(dy,dx);angle+=Math.atan2(Math.sin(a-angle),Math.cos(a-angle))*(1-Math.exp(-dt*12));}
           if(twitch>0){x+=Math.sin(t*55)*dt*25;y+=Math.cos(t*48)*dt*14;}

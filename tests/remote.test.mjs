@@ -114,3 +114,14 @@ test('owner catch persists through polling and heartbeats; release restarts move
   await f.request(path,'POST',command('catch'));
   state=await(await f.request(path,'POST',command('game',{game:'mouse'}))).json();assert.equal(state.caught,false);
 });
+
+test('game-specific actions and rain strength reach the cat screen with validation',async()=>{
+  const f=fixture(),room=await create(f,'koi'),path='/'+room.id;
+  const control={x:.23,y:.76,active:false,hidden:false,twitch:7,kind:'pond-food',strength:.4};
+  let r=await f.request(path,'POST',command('control',{control}));assert.equal(r.status,200);
+  let state=await(await f.request(path)).json();assert.deepEqual(state.control,control);
+  for(const patch of [{kind:'unknown'},{strength:1.1},{strength:-1},{strength:'heavy'}]){
+    r=await f.request(path,'POST',command('control',{control:{...control,...patch}}));assert.equal(r.status,400);
+  }
+  state=await(await f.request(path)).json();assert.deepEqual(state.control,control);
+});

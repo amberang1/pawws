@@ -14,7 +14,7 @@ export function koiPond(c:CanvasRenderingContext2D,w:number,h:number):ToyScene {
   const ripples:{x:number;y:number;age:number}[]=[];
   function ripple(x:number,y:number){ripples.push({x,y,age:0});if(ripples.length>12)ripples.shift();}
   return {
-    control(next){input=next;if(next.twitch!==lastTwitch){lastTwitch=next.twitch;fish[0].phase+=1.8;ripple(fish[0].x,fish[0].y);}},
+    control(next){input=next;if(next.twitch!==lastTwitch){lastTwitch=next.twitch;if(next.kind==='pond-food'){target={x:next.x*w,y:next.y*h};food=8;flee=0;timer=9;ripple(target.x,target.y);}else if(next.kind==='pond-ripple'){ripple(next.x*w,next.y*h);}else {fish[0].phase+=1.8;ripple(fish[0].x,fish[0].y);}}},
     draw(dt,t){
       if(dt){timer-=dt;flee=Math.max(0,flee-dt);food=Math.max(0,food-dt);for(const r of ripples)r.age+=dt;
         if(timer<=0&&!input.active){target={x:rand(w*.15,w*.82),y:rand(h*.25,h*.83)};timer=rand(3,6);}
@@ -35,7 +35,8 @@ export function koiPond(c:CanvasRenderingContext2D,w:number,h:number):ToyScene {
         c.save();c.beginPath();c.ellipse(0,0,40,15,0,0,7);c.clip();oval(c,13,-3,15,12,f.tone?'#dc9d39':'#c95c2f');oval(c,-16,6,12,11,f.tone?'#cf8d2b':'#d76c35');oval(c,-9,-8,7,8,'#354744');
         c.strokeStyle='#697e702c';c.lineWidth=.7;for(let row=-2;row<3;row++)for(let col=-5;col<6;col++){c.beginPath();c.arc(col*6+(row%2)*3,row*5,4,-1.3,1.3);c.stroke();}c.restore();
         oval(c,29,-8,1.8,2,'#132a2a');oval(c,29,8,1.8,2,'#132a2a');c.strokeStyle='#f6f2d6aa';c.beginPath();c.moveTo(34,-2);c.lineTo(43,-4);c.moveTo(34,2);c.lineTo(43,4);c.stroke();c.restore();}
-      if(food>0){for(let i=0;i<5;i++)oval(c,target.x+Math.sin(i*5)*14,target.y+Math.cos(i*3)*12,2,2,'#bea879');}
+      if(food>0){for(let i=0;i<5;i++)oval(c,target.x+Math.sin(i*5)*14,target.y+Math.cos(i*3)*12,2,2,'#bea879');
+        for(let i=0;i<9;i++){const age=(t*.7+i*.19)%1,bx=target.x+Math.sin(i*17)*18,by=target.y+Math.cos(i*9)*12-age*12;c.strokeStyle=`rgba(236,250,241,${.5*(1-age)})`;c.lineWidth=1;c.beginPath();c.ellipse(bx,by,2+age*3,1+age*1.5,0,0,7);c.stroke();}}
       for(const r of ripples)if(r.age<2){c.strokeStyle=`rgba(214,235,221,${(1-r.age/2)*.55})`;c.lineWidth=1.5;for(let i=0;i<3;i++){c.beginPath();c.ellipse(r.x,r.y,8+r.age*65+i*12,5+r.age*43+i*8,0,0,7);c.stroke();}}
       // Opaque leaf provides a physical hiding place, with a submerged shadow.
       c.save();c.translate(leaf.x,leaf.y);c.rotate(-.4);oval(c,8,13,leaf.r,leaf.r*.65,'#163b3955');const g=c.createLinearGradient(-leaf.r,0,leaf.r,0);g.addColorStop(0,'#547755');g.addColorStop(1,'#819165');c.fillStyle=g;c.beginPath();c.ellipse(0,0,leaf.r,leaf.r*.65,0,.15,Math.PI*2-.15);c.lineTo(-leaf.r*.15,0);c.closePath();c.fill();c.strokeStyle='#b4bc883e';for(let i=-4;i<=4;i++){c.beginPath();c.moveTo(-leaf.r*.15,0);c.lineTo(Math.cos(i*.6)*leaf.r*.9,Math.sin(i*.6)*leaf.r*.6);c.stroke();}c.restore();

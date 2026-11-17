@@ -1,3 +1,4 @@
+import { GameRemote } from './GameRemote';
 import React, { useEffect, useState } from 'react';
 import { Hand, ArrowLeft, ArrowUpRight, Eye, MoveRight, Pause, Play, Radio } from 'lucide-react';
 import { Touchpad } from './Touchpad';
@@ -32,12 +33,12 @@ export function RemoteControl({ id, onClose }: { id: string; onClose: () => void
       {error && <div className="notice" role="alert">{error}</div>}
       {room && !ended && <>
         <details className="remote-preview"><summary>See an illustrated preview</summary><div className="remote-mini"><EverydayWorld world={room.game} preview tease={room}/></div><p className="remote-caption">Watch your cat’s screen for the actual position.</p></details>
-        <Touchpad world={room.game} control={room.control} disabled={ended || !hostOnline || !!error || !!room.caught} onControl={sendControl}/>
+        {room.game==='door'||room.game==='bug' ? <Touchpad world={room.game} control={room.control} disabled={ended || !hostOnline || !!error || !!room.caught} onControl={sendControl}/> : <GameRemote world={room.game} control={room.control} disabled={ended || !hostOnline || !!error || !!room.caught} onControl={sendControl}/>}
         {room.game!=='rain' && <button className={'catch-button '+(room.caught?'is-caught':'')} disabled={pending>0 || !hostOnline || !!error} onClick={()=>command(room.caught?'release':'catch')}><Hand size={23}/><strong>{room.caught?'Let go →':'Caught it!'}</strong><span>{room.caught?'Send the toy off again':'Tap when their paw lands on the toy'}</span></button>}
-        <div className="remote-actions">
+        {(room.game==='door'||room.game==='bug') && <div className="remote-actions">
           <button className="remote-primary" disabled={pending > 0 || !hostOnline || !!error} onClick={() => command('move')}><MoveRight size={28}/><strong>{selected?.move}</strong></button>
           <button className="remote-secondary" disabled={pending > 0 || !hostOnline || !!error} onClick={() => command('peek')}><Eye size={28}/><strong>{selected?.peek}</strong></button>
-        </div>
+        </div>}
         <button className="pause-button" disabled={pending > 0} onClick={() => command(room.paused ? 'resume' : 'pause')}>{room.paused ? <Play size={18}/> : <Pause size={18}/>} {room.paused ? 'Let it play' : 'Pause & build suspense'}</button>
         <p className="sent-message" role="status">{pending ? 'Sending…' : sent || 'Give them a moment to watch between moves.'}</p>
         <label className="field-label" htmlFor="remote-world">Something different?</label>

@@ -42,11 +42,13 @@ function paperBag(c: CanvasRenderingContext2D, w: number, h: number): Scene {
     }
   });
   let timer = 1.2, rustle = 0, reveal = 0, held: number | null = null, press: Point | null = null, side = 1, wiggle = 0, bulgeX = -90, bulgeY = 25, bulgeTargetX = 85, bulgeTargetY = 45, relocate = 0;
+  let remoteBag:ToyControl|undefined, bagEvent=-1;
   function tailPoint() { return { x: cx + side * (145 + reveal * 115) * s, y: cy + (25 - Math.sin(wiggle * 2) * 30 * reveal) * s }; }
   return {
+    control(next){remoteBag=next;if(next.twitch!==bagEvent){bagEvent=next.twitch;if(next.kind==='bag-tail'){reveal=1;rustle=.5;timer=5;}else if(next.kind==='bag-target'||next.kind==='bag-release'){bulgeTargetX=(next.x-.5)*220;bulgeTargetY=(next.y-.5)*110;relocate=5;rustle=1;timer=5;}}},
     draw(dt, t) {
       if (dt) {
-        timer -= dt; rustle = Math.max(0, rustle - dt); if (held === null) { wiggle += dt; relocate -= dt;
+        timer -= dt; rustle = Math.max(0, rustle - dt); if (held === null && remoteBag?.kind!=='bag-hold') { wiggle += dt; relocate -= dt;
           if(relocate<=0){bulgeTargetX=random(-110,90);bulgeTargetY=random(-25,70);relocate=random(1.5,3.5);rustle=Math.max(rustle,.7);}
           bulgeX+=(bulgeTargetX-bulgeX)*(1-Math.exp(-dt*2));bulgeY+=(bulgeTargetY-bulgeY)*(1-Math.exp(-dt*2));
         }
@@ -127,8 +129,10 @@ function escapingReceipt(c: CanvasRenderingContext2D, w: number, h: number): Sce
     for(let i=0;i<16;i++){b.fillStyle='#3d4a44';b.fillRect(-15*s,(-82+i*10)*s,30*s,4*s);b.fillStyle='#d5d9c6';b.fillRect(-15*s,(-81+i*10)*s,30*s,1*s);}b.restore();
   });
   let x = w * .5, y = h * .5, vx = 22, vy = -9, rot = -.25, spin = .08, gust = 1.5, next = 3.5, flutter = 0, breeze = 1, lift = 0;
+  let remoteEvent=-1;
   let held: number | null = null, last: Point | null = null, lastTime = 0, releaseVX = 0, releaseVY = 0, offsetX = 0, offsetY = 0, pinX = 0, pinY = 0;
   return {
+    control(next){if(next.twitch!==remoteEvent){remoteEvent=next.twitch;if(next.kind==='receipt-gust'&&held===null){const dx=next.x-.5,dy=next.y-.5,d=Math.hypot(dx,dy)||1,power=80+(next.strength??.5)*260;vx+=dx/d*power;vy+=dy/d*power;gust=1.5;lift=.7;}}},
     draw(dt, t) {
       if (dt) {
         flutter += dt;
