@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { ToyControl } from '../games/ToyWorlds';
 import type { World } from '../games/EverydayWorlds';
 
-export type Room = { game: World; paused: boolean; move: number; peek: number; revision: number; expires: number; remoteSeen: number; hostSeen: number };
-export type RemoteAction = 'move' | 'peek' | 'pause' | 'resume' | 'game' | 'remote-heartbeat' | 'host-heartbeat';
+export type Room = { game: World; paused: boolean; move: number; peek: number; revision: number; expires: number; remoteSeen: number; hostSeen: number; control?: ToyControl };
+export type RemoteAction = 'move' | 'peek' | 'pause' | 'resume' | 'game' | 'remote-heartbeat' | 'host-heartbeat' | 'control';
 async function api(path: string, options?: RequestInit) {
   const response = await fetch('/api/rooms' + path, { ...options, headers: { 'Content-Type': 'application/json', ...options?.headers }, cache: 'no-store' });
   let body;
@@ -21,9 +22,13 @@ export function useRemote(id: string | null, role: 'host' | 'remote') {
   const [error, setError] = useState('');
   const [pending, setPending] = useState(0);
   const [ended, setEnded] = useState(false);
-  const queue = useRef(Promise.resolve());
+  const queue = useRef<Promise<unknown>>(Promise.resolve());
   const active = useRef(id); active.current = id;
   const latest = useRef<Room | null>(null);
+  const controlPending = useRef<ToyControl | null>(null);
+  const controlBusy = useRef(false);
+  const controlTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const accept = useCallback((next: Room) => {
     if (!latest.current || next.revision >= latest.current.revision) { latest.current = next; setRoom(next); }
   }, []);
@@ -41,16 +46,21 @@ export function useRemote(id: string | null, role: 'host' | 'remote') {
         setError(e.message);
         if (e.status === 404 || e.status === 410) { setEnded(true); return; }
       }
-      if (!cancelled) timer = setTimeout(poll, document.hidden ? 2500 : 850);
+      if (!cancelled) timer = setTimeout(poll, document.hidden ? 2500 : latest.current?.control?.active ? 160 : 450);
     }
     poll();
     return () => { cancelled = true; clearTimeout(timer); };
   }, [id, accept]);
-  const send = useCallback((action: RemoteAction, game?: World) => {
+  const send = useCallback((action: RemoteAction, game?: World, control?: ToyControl) => {
+    if(action === 'pause' || action === 'game' || action === 'move') {
+      controlPending.current=null;
+      if(controlTimer.current)clearTimeout(controlTimer.current);
+      controlTimer.current=null;
+    }
     const connection = id;
-    if (!connection) return Promise.resolve();
-    const command = { action, game, id: crypto.randomUUID() };
-    const quiet = action.endsWith('heartbeat');
+    if (!connection) return Promise.resolve(false);
+    const command = { action, game, control, id: crypto.randomUUID() };
+    const quiet = action.endsWith('heartbeat') || action === 'control';
     if (!quiet) setPending(p => p + 1);
     const operation = queue.current.catch(() => {}).then(async () => {
       if (active.current !== connection) return;
@@ -58,7 +68,7 @@ export function useRemote(id: string | null, role: 'host' | 'remote') {
         try {
           const next = await api('/' + connection, { method: 'POST', body: JSON.stringify(command) });
           if (active.current === connection) { accept(next); setError(''); }
-          return;
+          return true;
         } catch (e: any) {
           if (e.status === 409 && attempt < 3) continue;
           if (active.current === connection) { setError(e.message); if (e.status === 404 || e.status === 410) setEnded(true); }
@@ -67,7 +77,7 @@ export function useRemote(id: string | null, role: 'host' | 'remote') {
       }
     });
     queue.current = operation;
-    return operation.catch(() => {}).finally(() => { if (!quiet) setPending(p => Math.max(0, p - 1)); });
+    return operation.catch(() => false).finally(() => { if (!quiet) setPending(p => Math.max(0, p - 1)); });
   }, [id, accept]);
   useEffect(() => {
     if (!id || ended) return;
@@ -77,5 +87,19 @@ export function useRemote(id: string | null, role: 'host' | 'remote') {
     document.addEventListener('visibilitychange', ping);
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', ping); };
   }, [id, role, send, ended]);
-  return { room, error, pending, ended, send };
+  const sendControl = useCallback((control: ToyControl) => {
+    if(!id || ended)return;
+    controlPending.current = control;
+    const drain = async () => {
+      controlTimer.current=null;
+      if(controlBusy.current || !controlPending.current)return;
+      const next=controlPending.current;controlPending.current=null;controlBusy.current=true;
+      try { await send('control', undefined, next); }
+      finally {controlBusy.current=false;if(controlPending.current)controlTimer.current=setTimeout(drain,90);}
+    };
+    if(!controlBusy.current && !controlTimer.current)controlTimer.current=setTimeout(()=>{controlTimer.current=null;drain();},55);
+  },[id,ended,send]);
+  useEffect(()=>()=>{if(controlTimer.current)clearTimeout(controlTimer.current);controlTimer.current=null;controlPending.current=null;},[id]);
+  return { room, error, pending, ended, send, sendControl };
+
 }

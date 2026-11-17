@@ -10,9 +10,9 @@ The preview is owner-private. Open it in a browser signed in to the owner's Chat
 
 ## Play
 
-Choose Rainy Ride, Paper Bag Mystery, or The Escaping Receipt. These run autonomously and respond to paws. The original nine games remain in the original toy box.
+Choose String & Seek, Mouse Behind the Skirting, Rainy Ride, Paper Bag Mystery, or The Escaping Receipt. These run autonomously and respond to paws. The original nine games remain in the original toy box.
 
-Choose **Play together** to create a remote link. Open the link on a second phone. **Move**, **Peek**, and **Pause** trigger different behaviours in each world; the remote can also switch between the three worlds. Return to the cat's screen and close its human controls panel. Hold the small controls button for 0.9 seconds (or press Escape) to reopen it.
+Choose **Play together** to create a remote link. Open the link on a second phone. **Move**, **Peek**, and **Pause** trigger different behaviours in each world; the remote can also switch between all five worlds. String & Seek and Mouse Behind the Skirting include a direct touchpad: drag to guide the toy, lift to hold it still, use Twitch or Hide, and choose Auto play to release control. Keyboard arrows also work on the touchpad. Positions are coalesced and smoothed, with response depending on the connection; this is not a video stream or a zero-latency connection. Return to the cat's screen and close its human controls panel. Hold the small controls button for 0.9 seconds (or press Escape) to reopen it.
 
 Remote links are unguessable bearer capabilities, expire after two hours, and are invalidated on disconnect or leaving the game. Keep them private. The remote is a miniature illustration, not a video stream of the cat's screen. Host connection survives refresh in the same tab. No camera, microphone, AI API key, or account setup inside the app is needed.
 

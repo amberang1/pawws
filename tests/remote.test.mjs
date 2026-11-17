@@ -70,3 +70,34 @@ test('unavailable storage reports a useful error instead of pretending to pair',
   const r=await handleAPI(new Request('https://cats.example/api/rooms',{method:'POST',body:'{"game":"rain"}'}),{});
   assert.equal(r.status,503);assert.match((await r.json()).error,/still play/);
 });
+
+test('new worlds pair and keep normalized manual positions and hiding state',async()=>{
+  const f=fixture();
+  for(const game of ['ribbon','mouse']){
+    const room=await create(f,game),path='/'+room.id;
+    const control={x:.83,y:.24,active:true,hidden:true,twitch:3};
+    let r=await f.request(path,'POST',command('control',{control}));
+    assert.equal(r.status,200);
+    let state=await r.json();assert.deepEqual(state.control,control);
+    state=await(await f.request(path)).json();assert.deepEqual(state.control,control);
+    assert.equal(state.paused,false);
+    state=await(await f.request(path,'POST',command('control',{control:{...control,active:false,hidden:false}}))).json();
+    assert.equal(state.control.active,false);assert.equal(state.control.hidden,false);
+  }
+});
+test('invalid or unbounded toy coordinates never enter session state',async()=>{
+  const f=fixture(),room=await create(f,'mouse'),path='/'+room.id;
+  const good={x:.5,y:.5,active:true,hidden:false,twitch:0};
+  for(const patch of [{x:-.1},{x:1.1},{y:null},{active:'yes'},{hidden:1},{twitch:-1},{twitch:1.2},{twitch:1000001}]){
+    assert.equal((await f.request(path,'POST',command('control',{control:{...good,...patch}}))).status,400);
+  }
+  const state=await(await f.request(path)).json();assert.equal(state.control.active,false);
+});
+test('pause survives heartbeat, while explicit movement and game changes release manual control',async()=>{
+  const f=fixture(),room=await create(f,'ribbon'),path='/'+room.id;
+  await f.request(path,'POST',command('control',{control:{x:.8,y:.3,active:true,hidden:true,twitch:1}}));
+  await f.request(path,'POST',command('pause'));
+  let state=await(await f.request(path,'POST',command('host-heartbeat'))).json();assert.equal(state.paused,true);
+  state=await(await f.request(path,'POST',command('move'))).json();assert.equal(state.paused,false);assert.equal(state.control.active,false);
+  state=await(await f.request(path,'POST',command('game',{game:'mouse'}))).json();assert.deepEqual(state.control,{x:.5,y:.5,active:false,hidden:false,twitch:0});
+});

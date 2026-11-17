@@ -1,12 +1,14 @@
 import React, { useEffect, useRef } from 'react';
+import { stringAndSeek, hidingMouse, type ToyControl } from './ToyWorlds';
 
-export type World = 'rain' | 'bag' | 'receipt';
-export type Tease = { move: number; peek: number; paused: boolean };
+export type World = 'rain' | 'bag' | 'receipt' | 'ribbon' | 'mouse';
+export type Tease = { move: number; peek: number; paused: boolean; control?: ToyControl };
 export const quiet: Tease = { move: 0, peek: 0, paused: false };
 type Point = { x: number; y: number };
 type Scene = {
   draw: (dt: number, t: number) => void;
   command: (kind: 'move' | 'peek') => void;
+  control?: (control: ToyControl) => void;
   down: (id: number, p: Point) => boolean;
   drag: (id: number, p: Point) => void;
   up: (id: number, p: Point) => void;
@@ -281,7 +283,7 @@ export function EverydayWorld({ world, tease = quiet, preview = false, onAction 
       canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
       ctx.setTransform(dpr,0,0,dpr,0,0);
       points.clear();
-      scene = (world === 'rain' ? rainyRide : world === 'bag' ? paperBag : escapingReceipt)(ctx,width,height);
+      scene = (world === 'ribbon' ? stringAndSeek : world === 'mouse' ? hidingMouse : world === 'rain' ? rainyRide : world === 'bag' ? paperBag : escapingReceipt)(ctx,width,height);
     }
     const observer = new ResizeObserver(resize); observer.observe(canvas); resize();
     function tick(now: number) {
@@ -291,6 +293,7 @@ export function EverydayWorld({ world, tease = quiet, preview = false, onAction 
       previous=now;lastRender=now;
       const current = inputs.current.tease;
       for(const kind of ['move','peek'] as const) if(current[kind]!==seen[kind]) {scene.command(kind);seen[kind]=current[kind];}
+      if(current.control)scene.control?.(current.control);
       time+=dt;scene.draw(dt,time);
     }
     frame=requestAnimationFrame(tick);
@@ -302,5 +305,5 @@ export function EverydayWorld({ world, tease = quiet, preview = false, onAction 
     canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);canvas.addEventListener('lostpointercapture',up);window.addEventListener('blur',blur);
     return()=>{cancelAnimationFrame(frame);observer.disconnect();canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointercancel',up);canvas.removeEventListener('lostpointercapture',up);window.removeEventListener('blur',blur);};
   },[world,preview]);
-  return <canvas ref={ref} className={'world-canvas '+(preview?'world-preview':'')} aria-label={world === 'rain' ? 'Rain on a car windscreen with moving wipers' : world === 'bag' ? 'A rustling paper bag with a peeking tail' : 'A fluttering receipt you can hold and swipe'} />;
+  return <canvas ref={ref} className={'world-canvas '+(preview?'world-preview':'')} aria-label={world === 'ribbon' ? 'A flexible braided string that hides behind a curtain' : world === 'mouse' ? 'A realistic mouse that hides in skirting-board holes' : world === 'rain' ? 'Rain on a car windscreen with moving wipers' : world === 'bag' ? 'A rustling paper bag with a peeking tail' : 'A fluttering receipt you can hold and swipe'} />;
 }

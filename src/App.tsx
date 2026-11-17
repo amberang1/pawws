@@ -16,7 +16,7 @@ import { DanglingString } from './games/DanglingString';
 import { RollingCone } from './games/RollingCone';
 
 const oldGames = { koi: KoiRipplePond, bug: BugUnderGlass, shadows: PeekABooShadows, gravity: GravityChaos, hunt: HuntCycle, coplay: CoPlayMode, sound: SoundReactor, string: DanglingString, cone: RollingCone };
-const isWorld = (g: string): g is World => ['rain', 'bag', 'receipt'].includes(g);
+const isWorld = (g: string): g is World => ['rain', 'bag', 'receipt', 'ribbon', 'mouse'].includes(g);
 function storedHost() { try { const data = JSON.parse(sessionStorage.getItem('pawhunt-host') || 'null'); return data && /^[a-f0-9]{32}$/.test(data.id) && isWorld(data.game) ? data : null; } catch { return null; } }
 function remoteFromHash() { return window.location.hash.match(/^#remote=([a-f0-9]{32})$/)?.[1] || null; }
 export default function App() {
