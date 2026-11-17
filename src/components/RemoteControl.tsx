@@ -6,11 +6,13 @@ import { EverydayWorld, type World } from '../games/EverydayWorlds';
 
 export const worlds: { id: World; title: string; eyebrow: string; description: string; move: string; peek: string }[] = [
   { id: 'door', title: 'Under the Door', eyebrow: 'Something is peeking out', description: 'A feather slips under the door, twitches, and disappears.', move: 'Move the feather', peek: 'Peek under the door' },
-  { id: 'ribbon', title: 'String & Seek', eyebrow: 'You pull the strings', description: 'A twitch, a curl, a disappearing end. You decide what happens next.', move: 'Pull the string', peek: 'Peek around the curtain' },
-  { id: 'mouse', title: 'Mouse Behind the Skirting', eyebrow: 'Wait. Was that a whisker?', description: 'Tiny feet, twitching whiskers, and three very suspicious holes.', move: 'Scurry across the floor', peek: 'Peek from a hole' },
-  { id: 'rain', title: 'Rainy Ride', eyebrow: 'A little mesmerising', description: 'Raindrops race. Wipers sweep. The world can wait.', move: 'Sweep the wipers', peek: 'Drop a leaf' },
-  { id: 'bag', title: 'Paper Bag Mystery', eyebrow: 'Something’s in there', description: 'A rustle, a twitch, a tail. Wait for it…', move: 'Rustle the bag', peek: 'Peek the tail' },
-  { id: 'receipt', title: 'The Escaping Receipt', eyebrow: 'Made for little paws', description: 'Catch a corner. Hold it still. Let it flutter away.', move: 'Send a gust', peek: 'Flutter a corner' }
+  { id: 'ribbon', title: 'Shoelace & Seek', eyebrow: 'You pull the strings', description: 'A braided shoelace curls beside a shoe. Pin it and watch the loose end.', move: 'Pull slowly', peek: 'Feed out the lace' },
+  { id: 'mouse', title: 'Mouse Behind the Skirting', eyebrow: 'Wait. Was that a whisker?', description: 'Tiny feet, twitching whiskers, and three very suspicious holes.', move: 'Go to the crumb', peek: 'Peek from a hole' },
+  { id: 'koi', title: 'Shallow Pond', eyebrow: 'Just below the surface', description: 'Two koi drift over pebbles. A paw sends ripples; the fish dart for cover.', move: 'Swim into the open', peek: 'Drop some food' },
+  { id: 'bug', title: 'Kitchen Beetle', eyebrow: 'Antennae first', description: 'A tiny visitor explores a crumb, then slips beneath a cork coaster.', move: 'Go to a crumb', peek: 'Show antennae' },
+  { id: 'rain', title: 'Rainy Ride', eyebrow: 'A little mesmerising', description: 'Watch the blades sweep the rain away. A rhythm, a pause, then another pass.', move: 'Steady sweep', peek: 'Quick double sweep' },
+  { id: 'bag', title: 'Paper Bag Mystery', eyebrow: 'Something’s in there', description: 'A rustle, a twitch, a tail. Wait for it…', move: 'Move inside', peek: 'Show the tail' },
+  { id: 'receipt', title: 'The Escaping Receipt', eyebrow: 'Made for little paws', description: 'Catch a corner. Hold it still. Let it flutter away.', move: 'Reverse the breeze', peek: 'Lift a corner' }
 ];
 export function RemoteControl({ id, onClose }: { id: string; onClose: () => void }) {
   const { room, error, pending, ended, send, sendControl } = useRemote(id, 'remote');
@@ -33,8 +35,8 @@ export function RemoteControl({ id, onClose }: { id: string; onClose: () => void
         <p className="remote-caption">Illustrated preview · your cat’s view moves independently</p>
         <Touchpad world={room.game} control={room.control} disabled={ended || !hostOnline || !!error} onControl={sendControl}/>
         <div className="remote-actions">
-          <button className="remote-primary" disabled={pending > 0 || !hostOnline} onClick={() => command('move')}><MoveRight size={28}/><strong>Move</strong><span>{selected?.move}</span></button>
-          <button className="remote-secondary" disabled={pending > 0 || !hostOnline} onClick={() => command('peek')}><Eye size={28}/><strong>Peek</strong><span>{selected?.peek}</span></button>
+          <button className="remote-primary" disabled={pending > 0 || !hostOnline} onClick={() => command('move')}><MoveRight size={28}/><strong>{selected?.move}</strong></button>
+          <button className="remote-secondary" disabled={pending > 0 || !hostOnline} onClick={() => command('peek')}><Eye size={28}/><strong>{selected?.peek}</strong></button>
         </div>
         <button className="pause-button" disabled={pending > 0} onClick={() => command(room.paused ? 'resume' : 'pause')}>{room.paused ? <Play size={18}/> : <Pause size={18}/>} {room.paused ? 'Let it play' : 'Pause & build suspense'}</button>
         <p className="sent-message" role="status">{pending ? 'Sending…' : sent || 'Give them a moment to watch between moves.'}</p>

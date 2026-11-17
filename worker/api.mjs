@@ -1,4 +1,4 @@
-const games = ['rain', 'bag', 'receipt', 'ribbon', 'mouse', 'door'];
+const games = ['rain', 'bag', 'receipt', 'ribbon', 'mouse', 'door', 'koi', 'bug'];
 const json = (body, status = 200) => Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
 const lifetime = 2 * 60 * 60 * 1000;
 export async function handleAPI(request, env) {

@@ -53,12 +53,19 @@ export function stringAndSeek(c:CanvasRenderingContext2D,w:number,h:number):ToyS
         const k=1-Math.exp(-dt*(twitch>0?16:9));
         pts[0].x+=(desired.x+(twitch>0?Math.sin(t*60)*18:0)-pts[0].x)*k;pts[0].y+=(desired.y+(twitch>0?Math.cos(t*48)*9:0)-pts[0].y)*k;
         for(let i=1;i<n;i++){const p=pts[i],vx=(p.x-p.px)*.91,vy=(p.y-p.py)*.91;p.px=p.x;p.py=p.y;p.x+=vx;p.y+=vy+dt*dt*35;}
+        if(pins.size && twitch>0){const end=pts[n-1];end.x+=Math.sin(t*42)*dt*65;end.y+=Math.cos(t*33)*dt*45;}
         for(let pass=0;pass<9;pass++) {
           for(let i=1;i<n;i++){const a=pts[i-1],b=pts[i],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1,err=(d-gap)/d,weight=i===1?1:.5;if(i>1){a.x+=dx*err*.5;a.y+=dy*err*.5;}b.x-=dx*err*weight;b.y-=dy*err*weight;b.y=clamp(b.y,8,h-8);}
           for(const {index,p} of pins.values()){pts[index].x=p.x;pts[index].y=p.y;}
         }
       }
       c.drawImage(base,0,0);
+      // A worn canvas shoe makes the braided cord read as an actual shoelace.
+      c.save();c.translate(w*.17,h*.76);c.rotate(-.35);const shoe=Math.min(w*.3,h*.3,165);c.scale(shoe/150,shoe/150);
+      c.save();c.shadowColor='#34352b44';c.shadowBlur=14;c.shadowOffsetY=8;ellipse(c,0,0,73,35,'#d2cfbd');c.restore();
+      ellipse(c,0,-5,72,32,'#eeeade');ellipse(c,-26,-8,28,21,'#9a9d8d');ellipse(c,-27,-8,21,15,'#555d50');ellipse(c,39,-4,25,27,'#e0decb');
+      c.strokeStyle='#b7b7a3';c.lineWidth=2;c.beginPath();c.ellipse(0,2,71,31,0,0,7);c.stroke();
+      for(let i=0;i<4;i++){const x=-4+i*9;ellipse(c,x,-18,2,2,'#6a766e');ellipse(c,x,10,2,2,'#6a766e');c.strokeStyle='#5b7890';c.lineWidth=3;c.beginPath();c.moveTo(x,-18);c.lineTo(x+7,10);c.stroke();}c.restore();
       function rope(offset:number,color:string,width:number) {
         c.beginPath();c.moveTo(pts[0].x,pts[0].y+offset);
         for(let i=1;i<n-1;i++)c.quadraticCurveTo(pts[i].x,pts[i].y+offset,(pts[i].x+pts[i+1].x)/2,(pts[i].y+pts[i+1].y)/2+offset);
@@ -82,7 +89,8 @@ export function stringAndSeek(c:CanvasRenderingContext2D,w:number,h:number):ToyS
 
 export function hidingMouse(c:CanvasRenderingContext2D,w:number,h:number):ToyScene {
   const base=floor(w,h,false), size=clamp(Math.min(w,h)*.085,23,52), wall=Math.min(h*.22,130), holes=[w*.2,w*.5,w*.8];
-  let input={...neutral},x=w*.5,y=h*.62,angle=-.3,target={x:w*.32,y:h*.58},timer=1.5,phase=0,twitch=0,lastTwitch=0,peek=0,flee=0,escapeTarget={x:w*.5,y:h*.5},held:number|null=null,holdPoint:Point|null=null,hole=1;
+  let input={...neutral},x=w*.5,y=h*.62,angle=-.3,target={x:w*.32,y:h*.58},timer=1.5,phase=0,twitch=0,lastTwitch=0,peek=0,flee=0,escapeTarget={x:w*.5,y:h*.5},held:number|null=null,holdPoint:Point|null=null,hole=1,stage=0,sniff=0;
+  const crumb={x:w*.38,y:h*.69};
   const tail=Array.from({length:14},()=>({x:x-70,y}));
   function renderMouse(t:number, speed:number) {
     c.save();c.translate(x+(held!==null?Math.sin(t*34)*Math.min(size*.045,2):0),y);c.rotate(angle);
@@ -109,8 +117,17 @@ export function hidingMouse(c:CanvasRenderingContext2D,w:number,h:number):ToySce
       if(dt){
         phase+=dt;timer-=dt;twitch=Math.max(0,twitch-dt);peek=Math.max(0,peek-dt);flee=Math.max(0,flee-dt);
         if(held===null){
-          if(!input.active&&timer<=0){if(Math.random()<.35){hole=Math.floor(rand(0,3));target={x:holes[hole],y:wall-size*.7};timer=rand(1.5,3);}else{target={x:rand(w*.1,w*.9),y:rand(wall+size*1.7,h-size*2)};timer=rand(1.2,3.5);}}
-          let dest=flee>0?escapeTarget:input.active?{x:input.x*w,y:input.y*h}:target;
+          if(!input.active&&timer<=0){
+            stage=(stage+1)%4;
+            if(stage===0){hole=Math.floor(rand(0,3));target={x:holes[hole],y:wall-size*1.6};timer=rand(2,4);}
+            if(stage===1){peek=1.6;target={x:holes[hole],y:wall+size*.2};timer=1.8;}
+            if(stage===2){target={...crumb};timer=rand(3.5,5);}
+            if(stage===3){target={x:holes[hole],y:wall-size*1.6};timer=2.5;}
+          }
+          sniff=Math.max(0,sniff-dt);
+          if(!input.active&&stage===2&&Math.hypot(x-crumb.x,y-crumb.y)<size*.65){sniff=.2;angle+=Math.sin(t*15)*dt*.8;}
+
+          let dest=flee>0?escapeTarget:peek>0?target:input.active?{x:input.x*w,y:input.y*h}:target;
           if(input.hidden && flee<=0){hole=holes.reduce((best,v,i)=>Math.abs(v-input.x*w)<Math.abs(holes[best]-input.x*w)?i:best,0);dest={x:holes[hole],y:peek>0?wall+size*.25:wall-size*1.6};}
           else dest={x:clamp(dest.x,size*1.6,w-size*1.6),y:flee<=0&&!input.active&&target.y<wall?target.y:clamp(dest.y,wall+size*1.1,h-size*1.2)};
           const dx=dest.x-x,dy=dest.y-y,d=Math.hypot(dx,dy),v=Math.min(d*7,Math.min(w,h)*.65)*(twitch>0?1.7:1);
@@ -127,14 +144,16 @@ export function hidingMouse(c:CanvasRenderingContext2D,w:number,h:number):ToySce
       c.save();c.beginPath();c.rect(0,wall,w,h-wall);c.clip();
       c.lineCap='round';c.lineJoin='round';c.beginPath();c.moveTo(tail[0].x,tail[0].y);for(const p of tail)c.lineTo(p.x,p.y);c.strokeStyle='#6a5448';c.lineWidth=Math.max(3,size*.14);c.stroke();c.strokeStyle='#bf9b86';c.lineWidth=Math.max(2,size*.08);c.stroke();
       renderMouse(t,speed);c.restore();
+      ellipse(c,crumb.x+2,crumb.y+3,5,3,'#6c4c2b44');ellipse(c,crumb.x,crumb.y,4,3,'#bc9b60');
       c.fillStyle='#c6beaa';c.fillRect(0,wall-3,w,3);c.strokeStyle='#77674a38';c.beginPath();c.moveTo(0,wall+2);c.lineTo(w,wall+2);c.stroke();
       // Nose and whiskers are visible in the hole during a deliberate peek.
-      if(input.hidden&&peek>0&&y<wall+size*.3){c.save();c.translate(holes[hole],wall-5);ellipse(c,0,0,size*.22,size*.13,'#bd9685');c.strokeStyle='#dfd5bf';c.lineWidth=1;for(const side of [-1,1])for(let i=0;i<3;i++){c.beginPath();c.moveTo(side*size*.12,-2);c.lineTo(side*size*(.6+i*.1),-size*(.1+i*.12));c.stroke();}c.restore();}
+      if(peek>0&&y<wall+size*.3){c.save();c.translate(holes[hole],wall-5);ellipse(c,0,0,size*.22,size*.13,'#bd9685');c.strokeStyle='#dfd5bf';c.lineWidth=1;for(const side of [-1,1])for(let i=0;i<3;i++){c.beginPath();c.moveTo(side*size*.12,-2);c.lineTo(side*size*(.6+i*.1),-size*(.1+i*.12));c.stroke();}c.restore();}
     },
-    command(kind){if(kind==='peek'){peek=1.5;twitch=.3;if(!input.hidden){hole=Math.floor(rand(0,3));target={x:holes[hole],y:wall+size*1.3};}}else{target={x:rand(w*.15,w*.85),y:rand(wall+size*2,h-size*2)};timer=3;twitch=.5;}},
+    command(kind){if(kind==='peek'){peek=2;twitch=.3;hole=holes.reduce((best,v,i)=>Math.abs(v-x)<Math.abs(holes[best]-x)?i:best,0);target={x:holes[hole],y:wall+size*.2};timer=2.5;stage=1;}else{target={...crumb};timer=5;stage=2;twitch=.3;}},
     down(id,p){if(held!==null||y<wall)return false;if(Math.hypot(p.x-x,p.y-y)<size*1.1+14){held=id;holdPoint=p;twitch=.4;return true;}if(Math.hypot(p.x-x,p.y-y)<size*3){const a=Math.atan2(y-p.y,x-p.x);escapeTarget={x:x+Math.cos(a)*size*4,y:y+Math.sin(a)*size*4};flee=.7;twitch=.4;}return false;},
     drag(id,p){if(held===id){x=clamp(p.x,size,w-size);y=clamp(p.y,wall+size,h-size);holdPoint=p;}},
     up(id){if(held===id){const a=angle;held=null;holdPoint=null;twitch=.35;escapeTarget={x:x+Math.cos(a)*size*4,y:y+Math.sin(a)*size*4};flee=.8;timer=1.5;}}
   };
 }
+
 

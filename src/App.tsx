@@ -16,7 +16,7 @@ import { DanglingString } from './games/DanglingString';
 import { RollingCone } from './games/RollingCone';
 
 const oldGames = { koi: KoiRipplePond, bug: BugUnderGlass, shadows: PeekABooShadows, gravity: GravityChaos, hunt: HuntCycle, coplay: CoPlayMode, sound: SoundReactor, string: DanglingString, cone: RollingCone };
-const isWorld = (g: string): g is World => ['rain', 'bag', 'receipt', 'ribbon', 'mouse', 'door'].includes(g);
+const isWorld = (g: string): g is World => ['rain', 'bag', 'receipt', 'ribbon', 'mouse', 'door', 'koi', 'bug'].includes(g);
 function storedHost() { try { const data = JSON.parse(sessionStorage.getItem('pawhunt-host') || 'null'); return data && /^[a-f0-9]{32}$/.test(data.id) && isWorld(data.game) ? data : null; } catch { return null; } }
 function remoteFromHash() { return window.location.hash.match(/^#remote=([a-f0-9]{32})$/)?.[1] || null; }
 function gameFromHash(): GameType | null {
@@ -145,7 +145,7 @@ export default function App() {
           <label className="field-label" htmlFor="remote-link">Open this link on your other device</label><input id="remote-link" value={remoteURL(roomId)} readOnly onClick={e=>e.currentTarget.select()}/>
           <div className="share-actions"><button className="primary-button" onClick={copyLink}>{copied?<Check size={16}/>:<Copy size={16}/>} {copied?'Copied':'Copy link'}</button><button className="outline-button" onClick={shareLink}><Share2 size={16}/> Share</button></div>
           <a className="test-remote" href={remoteURL(roomId)} target="_blank" rel="noreferrer">Try the remote in another tab ↗</a>
-          <p className="setup-note">If asked, sign in to the same ChatGPT account on your phone. This link lasts two hours. Keep it between your devices.</p>
+          <p className="setup-note">Open this link on your phone while the game stays open on your cat’s device. The link lasts two hours.</p>
           <button className="text-button" disabled={busy} onClick={disconnect}>Disconnect phone</button>
         </>}</div>
       </>}
@@ -156,5 +156,6 @@ export default function App() {
     {report && <div className="panel-backdrop"><section className="report-panel" role="dialog" aria-modal="true" aria-labelledby="report-title"><span className="eyebrow">THAT WAS A LITTLE ADVENTURE</span><h2 id="report-title">Curiosity, satisfied?</h2><p>Watching is part of playing, too.</p><div className="report-stats"><div><strong>{Math.floor(report.timeSpent/60)}:{String(report.timeSpent%60).padStart(2,'0')}</strong><span>Time together</span></div><div><strong>{report.taps}</strong><span>Touches</span></div><div><strong>{report.catches}</strong><span>Target contacts</span></div></div><button className="primary-button" onClick={()=>setReport(null)}>Back to the little worlds <ArrowLeft className="flip" size={16}/></button></section></div>}
   </>;
 }
+
 
 

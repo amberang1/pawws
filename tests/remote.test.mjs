@@ -62,7 +62,7 @@ test('invalid commands, malformed tokens, null payloads and foreign origins are 
   assert.equal((await f.request('','POST',{game:'unknown'})).status,400);
   assert.equal((await f.request('/1234')).status,404);
   assert.equal((await f.request('/'+room.id,'POST',null)).status,400);
-  assert.equal((await f.request('/'+room.id,'POST',command('game',{game:'koi'}))).status,400);
+  assert.equal((await f.request('/'+room.id,'POST',command('game',{game:'not-a-game'}))).status,400);
   assert.equal((await f.request('/'+room.id,'POST',command('erase'))).status,400);
   assert.equal((await f.request('/'+room.id,'POST',command('move'),'https://other.example')).status,403);
 });
@@ -73,7 +73,7 @@ test('unavailable storage reports a useful error instead of pretending to pair',
 
 test('new worlds pair and keep normalized manual positions and hiding state',async()=>{
   const f=fixture();
-  for(const game of ['ribbon','mouse','door']){
+  for(const game of ['ribbon','mouse','door','koi','bug']){
     const room=await create(f,game),path='/'+room.id;
     const control={x:.83,y:.24,active:true,hidden:true,twitch:3};
     let r=await f.request(path,'POST',command('control',{control}));
