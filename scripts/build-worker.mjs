@@ -7,7 +7,7 @@ function walk(dir) {
     if (fs.statSync(file).isDirectory()) walk(file);
     else {
       const ext = path.extname(file);
-      const types = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.json': 'application/json', '.webmanifest': 'application/manifest+json' };
+      const types = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.json': 'application/json', '.webmanifest': 'application/manifest+json' };
       assets['/' + path.relative('dist', file)] = { data: fs.readFileSync(file).toString('base64'), type: types[ext] || 'application/octet-stream' };
     }
   }
