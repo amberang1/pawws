@@ -1,4 +1,5 @@
 import { koiPond, kitchenBeetle } from './GardenWorlds';
+import { photoKoiPond } from './PhotoKoiPond';
 import { rainyRide } from './RainyRide';
 import React, { useEffect, useRef } from 'react';
 import { underTheDoor } from './UnderTheDoor';
@@ -200,7 +201,7 @@ export function EverydayWorld({ world, tease = quiet, preview = false, onAction 
       canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
       ctx.setTransform(dpr,0,0,dpr,0,0);
       points.clear();
-      scene = (world === 'koi' ? koiPond : world === 'bug' ? kitchenBeetle : world === 'door' ? underTheDoor : world === 'ribbon' ? stringAndSeek : world === 'mouse' ? hidingMouse : world === 'rain' ? rainyRide : world === 'bag' ? paperBag : escapingReceipt)(ctx,width,height);
+      scene = (world === 'koi' ? (c: CanvasRenderingContext2D,w: number,h: number) => photoKoiPond(c,w,h,koiPond(c,w,h)) : world === 'bug' ? kitchenBeetle : world === 'door' ? underTheDoor : world === 'ribbon' ? stringAndSeek : world === 'mouse' ? hidingMouse : world === 'rain' ? rainyRide : world === 'bag' ? paperBag : escapingReceipt)(ctx,width,height);
     }
     const observer = new ResizeObserver(resize); observer.observe(canvas); resize();
     function tick(now: number) {
@@ -215,13 +216,13 @@ export function EverydayWorld({ world, tease = quiet, preview = false, onAction 
     }
     frame=requestAnimationFrame(tick);
     const point = (e: PointerEvent) => {const box=canvas.getBoundingClientRect();return{x:e.clientX-box.left,y:e.clientY-box.top};};
-    function down(e:PointerEvent){if(preview||(inputs.current.tease.paused||inputs.current.tease.caught))return;e.preventDefault();canvas.setPointerCapture(e.pointerId);const p=point(e);points.set(e.pointerId,p);inputs.current.onAction?.('tap');if(scene.down(e.pointerId,p))inputs.current.onAction?.('catch');}
+    function down(e:PointerEvent){if(preview||world==='koi'||(inputs.current.tease.paused||inputs.current.tease.caught))return;e.preventDefault();canvas.setPointerCapture(e.pointerId);const p=point(e);points.set(e.pointerId,p);inputs.current.onAction?.('tap');if(scene.down(e.pointerId,p))inputs.current.onAction?.('catch');}
     function move(e:PointerEvent){if(!points.has(e.pointerId))return;const p=point(e);points.set(e.pointerId,p);if(!inputs.current.tease.paused&&!inputs.current.tease.caught)scene.drag(e.pointerId,p);}
     function up(e:PointerEvent){if(!points.has(e.pointerId))return;scene.up(e.pointerId,points.get(e.pointerId)!);points.delete(e.pointerId);}
     function blur(){for(const [id,p] of points)scene.up(id,p);points.clear();}
     canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);canvas.addEventListener('lostpointercapture',up);window.addEventListener('blur',blur);
     return()=>{cancelAnimationFrame(frame);observer.disconnect();canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointercancel',up);canvas.removeEventListener('lostpointercapture',up);window.removeEventListener('blur',blur);};
   },[world,preview]);
-  return <canvas ref={ref} className={'world-canvas '+(preview?'world-preview':'')} aria-label={world === 'koi' ? 'Koi swim through a shallow pond and hide under a leaf' : world === 'bug' ? 'A beetle explores crumbs and hides under a cork coaster' : world === 'door' ? 'A feather toy peeks out from under a door' : world === 'ribbon' ? 'A flexible braided string that hides behind a curtain' : world === 'mouse' ? 'A realistic mouse that hides in skirting-board holes' : world === 'rain' ? 'Rain on a car windscreen with moving wipers' : world === 'bag' ? 'A rustling paper bag with a peeking tail' : 'A fluttering receipt you can hold and swipe'} />;
+  return <canvas ref={ref} className={'world-canvas '+(preview?'world-preview':'')} aria-label={world === 'koi' ? 'Koi swim through a garden pond and gather around food' : world === 'bug' ? 'A beetle explores crumbs and hides under a cork coaster' : world === 'door' ? 'A feather toy peeks out from under a door' : world === 'ribbon' ? 'A flexible braided string that hides behind a curtain' : world === 'mouse' ? 'A realistic mouse that hides in skirting-board holes' : world === 'rain' ? 'Rain on a car windscreen with moving wipers' : world === 'bag' ? 'A rustling paper bag with a peeking tail' : 'A fluttering receipt you can hold and swipe'} />;
 }
 
