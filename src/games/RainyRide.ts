@@ -13,11 +13,11 @@ export function rainyRide(c:CanvasRenderingContext2D,w:number,h:number):ToyScene
     // Crossfade two continuously expanding views around the road's vanishing point.
     const p=(travel/12)%1;
     const paint=(phase:number,alpha:number)=>{
-      const scale=cover*(1.025+phase*.24),dw=road.naturalWidth*scale,dh=road.naturalHeight*scale;
+      const scale=cover*(1.08+phase*.24),dw=road.naturalWidth*scale,dh=road.naturalHeight*scale;
       c.globalAlpha=alpha;c.drawImage(road,w*.48-dw*.48+Math.sin(travel*.35)*w*.002,h*.475-dh*.475,dw,dh);
     };
     paint(p,1);
-    if(p>.76)paint(Math.max(0,p-.76),Math.min(1,(p-.76)/.24));
+    if(p>.76)paint(p-1,Math.min(1,(p-.76)/.24));
     c.globalAlpha=1;
   }
   type Drop={x:number;y:number;r:number;v:number;wait:number;alive:boolean;age:number};
